@@ -31,10 +31,10 @@ precond() {
         ;;
     Linux)
         if [ "$TARGET_ARCH" == "x86_64" ]; then
-            archive=fmodapi${pkgver//./}linux.tar.gz
+            archive=fmodapi${pkgver//./}linux64.tar.gz
             url=${urlbase}/${archive}
         else
-            archive=fmodapi${pkgver//./}linux64.tar.gz
+            archive=fmodapi${pkgver//./}linux.tar.gz
             url=${urlbase}/${archive}
         fi
         ;;
