@@ -22,14 +22,41 @@
 #
 #############################################################################
 
-project (openframeworks)
-cmake_minimum_required(VERSION 2.8)
+#--------------------------------------------------------------------------
+# Build Configuration - options can be set using "cmake -DOPTION="
+#--------------------------------------------------------------------------
+if (DEFINED CMAKE_BUILD_TYPE)
+    set (CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "build type")
+else ()
+    set (CMAKE_BUILD_TYPE debug CACHE STRING "build type")
+endif ()
+
+if (DEFINED CMAKE_VERBOSE_MAKEFILE)
+    set (CMAKE_VERBOSE_MAKEFILE ${CMAKE_VERBOSE_MAKEFILE} CACHE BOOL "verbose")
+else ()
+    set (CMAKE_VERBOSE_MAKEFILE false CACHE BOOL "verbose")
+endif ()
+
+# supported configurations
+set (CMAKE_CONFIGURATION_TYPES "debug;release" CACHE STRING "Configurations")
+
+#  prefix path for searching private libs
+set (CMAKE_PREFIX_PATH $ENV{HOME} CACHE PATH "library search path")
+set (CMAKE_INSTALL_PREFIX ${CMAKE_PREFIX_PATH} CACHE PATH "install path")
+
+set (BUILD_SHARED_LIBS false CACHE BOOL "build shared libs") # on, (off)
+set (LINK_SEARCH_END_STATIC true)  #  (on), off
+
 
 # always prefer files in CMAKE_MODULE_PATH
 if(POLICY CMP0017)
    cmake_policy(SET CMP0017 OLD)
 endif()
+cmake_minimum_required(VERSION 2.8)
 
+
+# Project definition
+project (openframeworks)
 set (OF_VERSION 0071)
 
 #--------------------------------------------------------------------------
@@ -59,21 +86,6 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set (CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".dylib")
 endif ()
 
-
-#--------------------------------------------------------------------------
-# Build Configuration - options can be set using "cmake -DOPTION="
-#--------------------------------------------------------------------------
-set (CMAKE_BUILD_TYPE debug CACHE STRING "build type")       # (debug), release
-set (CMAKE_VERBOSE_MAKEFILE false CACHE BOOL "verbose")      # on, (off)
-set (BUILD_SHARED_LIBS false CACHE BOOL "build shared libs") # on, (off)
-set (LINK_SEARCH_END_STATIC true)  #  (on), off
-
-# supported configurations
-set (CMAKE_CONFIGURATION_TYPES "debug;release" CACHE STRING "Configurations")
-
-#  prefix path for searching private libs
-set (CMAKE_PREFIX_PATH $ENV{HOME} CACHE PATH "library search path")
-set (CMAKE_INSTALL_PREFIX ${CMAKE_PREFIX_PATH} CACHE PATH "install path")
 
 #--------------------------------------------------------------------------
 # Definitions for Build Types
