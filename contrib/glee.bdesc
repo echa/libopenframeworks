@@ -1,0 +1,65 @@
+# Copyright 2012 KidTsunami. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# ---
+#
+# Author: Alexander Eichhorn <echa@kidtsunami.com>
+#
+# Content: build script for GLee (OpenGL Easy Extension library)
+#          http://elf-stone.com/glee.php
+#
+
+pkgname=glee
+pkgver=5.4.0
+archive=GLee-${pkgver}-src.tar.gz
+url=http://elf-stone.com/downloads/GLee/${archive}
+
+unpack() {
+   rm -rf glee
+   mkdir glee
+   cd glee
+   tar -xzvf ${BUILDDIR}/${archive}
+   cd ..
+}
+
+build() {
+    cd glee
+    ./configure --prefix=${INSTDIR}
+    g++ -c GLee.c -I. -g -O2 -Wall -DHAVE_CONFIG_H -o ./GLee.o
+    ar qcs libGLee.a GLee.o
+    mkdir -p ${INSTDIR}/include/GL
+    mkdir -p ${INSTDIR}/lib
+    cp libGLee.a ${INSTDIR}/lib
+    cp GLee.h ${INSTDIR}/include/GL
+    cd ..
+}
+
+pkgconf() {
+    case $TARGET_SYSTEM in
+    Darwin)
+        LIBS="-framework OpenGL"
+        ;;
+    Linux)
+        LIBS="-lGL"
+        ;;
+    *)
+        echo "Unsupported target system"
+        ;;
+    esac
+
+    mkdir -p ${INSTDIR}/lib/pkgconfig
+    cat ${PKGCONFDIR}/glee.pc.in | sed "s%##PREFIX##%${INSTDIR}%g" | \
+        sed "s/##VERSION##/${pkgver}/" | sed "s/##EXTRALIBS##/${LIBS}/" \
+        > ${INSTDIR}/lib/pkgconfig/glee.pc
+}

@@ -1,0 +1,16 @@
+Build and installs private versions of 3rd-party packages.
+
+Usage: ./build-contrib.sh [OPTION]... [FILE]...
+
+Install bdesc packages
+  -i set install destination
+  -t target system (use for cross-compiling)
+  -a target CPU architecture (use for cross-comiling)
+  -c continue building after error
+  -h display this help and exit
+
+To build individual packages separately call
+
+  ./build-contrib.sh package.bdesc
+
+Verbose build output is written to the log file under build/build.log.

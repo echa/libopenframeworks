@@ -1,0 +1,70 @@
+# Copyright 2012 KidTsunami. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# ---
+#
+# Author: Alexander Eichhorn <echa@kidtsunami.com>
+#
+# Content: build script for libtess2 - Tesselation library
+#          http://code.google.com/p/libtess2/
+#
+
+pkgname=libtess
+pkgver=1.0
+archive=libtess2-${pkgver}.zip
+url=http://libtess2.googlecode.com/files/${archive}
+
+unpack() {
+    unzip -o ${archive}
+}
+
+build() {
+    cd libtess2/Source
+
+    # build manually
+    CFLAGS="-O3 -mtune=${TARGET_CPU} -ffast-math -unroll-loops -I. -I../Include"
+    gcc -c -o bucketalloc.o ${CFLAGS} bucketalloc.c
+    gcc -c -o dict.o ${CFLAGS} dict.c
+    gcc -c -o geom.o ${CFLAGS} geom.c
+    gcc -c -o mesh.o ${CFLAGS} mesh.c
+    gcc -c -o priorityq.o ${CFLAGS} priorityq.c
+    gcc -c -o sweep.o ${CFLAGS} sweep.c
+    gcc -c -o tess.o ${CFLAGS} tess.c
+    ar qcs libtess2.a bucketalloc.o dict.o geom.o mesh.o priorityq.o sweep.o tess.o
+
+    # Install files
+    mkdir -p ${INSTDIR}/include/tess2
+    mkdir -p ${INSTDIR}/lib
+
+    cp libtess2.a ${INSTDIR}/lib/
+    cp -r ../Include/tesselator.h ${INSTDIR}/include/tess2
+}
+
+pkgconf() {
+    case ${TARGET_SYSTEM} in
+    Darwin)
+        LDFLAGS="-Wl,-framework,OpenGL"
+        ;;
+    Linux)
+        LDFLAGS="-lGL"
+        ;;
+    *)
+        echo "Unsupported target system"
+        ;;
+    esac
+    mkdir -p ${INSTDIR}/lib/pkgconfig
+    cat ${PKGCONFDIR}/tess2.pc.in | sed "s%##PREFIX##%${INSTDIR}%g" |\
+        sed "s/##VERSION##/${pkgver}/" | sed "s/##LDFLAGS##/${LDFLAGS}/" \
+        > ${INSTDIR}/lib/pkgconfig/tess2.pc
+}

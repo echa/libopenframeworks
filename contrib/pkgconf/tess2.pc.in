@@ -1,0 +1,15 @@
+# Tesselate library pkg-config source file
+
+prefix=##PREFIX##
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include/tess2
+
+Name: Tess2
+Description: Tess 2 - Game and Tools oriented refactored version of GLU tesselator
+Version: ##VERSION##
+Requires:
+Conflicts:
+Libs: -L${libdir} -ltess2 ##LDFLAGS##
+Libs.private: 
+Cflags: -I${includedir}

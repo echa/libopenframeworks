@@ -1,0 +1,106 @@
+diff -Naur OpenCV-2.4.2/modules/gpu/src/cuda/gftt.cu OpenCV-2.4.2-fixed/modules/gpu/src/cuda/gftt.cu
+--- OpenCV-2.4.2/modules/gpu/src/cuda/gftt.cu	2012-06-29 00:55:59.000000000 +0200
++++ OpenCV-2.4.2-fixed/modules/gpu/src/cuda/gftt.cu	2012-07-16 15:23:07.409358399 +0200
+@@ -45,6 +45,8 @@
+ //
+ //M*/
+ 
++#undef _GLIBCXX_ATOMIC_BUILTINS
++#undef _GLIBCXX_USE_INT128
+ #include <thrust/sort.h>
+ 
+ #include "opencv2/gpu/device/common.hpp"
+diff -Naur OpenCV-2.4.2/modules/gpu/src/cuda/internal_shared.hpp OpenCV-2.4.2-fixed/modules/gpu/src/cuda/internal_shared.hpp
+--- OpenCV-2.4.2/modules/gpu/src/cuda/internal_shared.hpp	2012-06-29 00:55:59.000000000 +0200
++++ OpenCV-2.4.2-fixed/modules/gpu/src/cuda/internal_shared.hpp	2012-07-16 14:58:25.655995533 +0200
+@@ -43,6 +43,10 @@
+ #ifndef __OPENCV_internal_shared_HPP__
+ #define __OPENCV_internal_shared_HPP__
+ 
++// fix for GCC4.7 and CUDA <= 4.2 incompatibility
++#undef _GLIBCXX_ATOMIC_BUILTINS
++#undef _GLIBCXX_USE_INT128
++
+ #include <cuda_runtime.h>
+ #include <npp.h>
+ #include "NPP_staging.hpp"
+diff -Naur OpenCV-2.4.2/modules/gpu/src/cuda/orb.cu OpenCV-2.4.2-fixed/modules/gpu/src/cuda/orb.cu
+--- OpenCV-2.4.2/modules/gpu/src/cuda/orb.cu	2012-06-29 00:55:59.000000000 +0200
++++ OpenCV-2.4.2-fixed/modules/gpu/src/cuda/orb.cu	2012-07-16 15:25:07.742693870 +0200
+@@ -45,6 +45,8 @@
+ //
+ //M*/
+ 
++#undef _GLIBCXX_ATOMIC_BUILTINS
++#undef _GLIBCXX_USE_INT128
+ #include <thrust/sort.h>
+ 
+ #include "opencv2/gpu/device/common.hpp"
+diff -Naur OpenCV-2.4.2/modules/gpu/src/cuda/pyrlk.cu OpenCV-2.4.2-fixed/modules/gpu/src/cuda/pyrlk.cu
+--- OpenCV-2.4.2/modules/gpu/src/cuda/pyrlk.cu	2012-06-29 00:55:59.000000000 +0200
++++ OpenCV-2.4.2-fixed/modules/gpu/src/cuda/pyrlk.cu	2012-07-16 15:36:00.376044089 +0200
+@@ -45,6 +45,8 @@
+ //
+ //M*/
+ 
++#undef _GLIBCXX_ATOMIC_BUILTINS
++#undef _GLIBCXX_USE_INT128
+ #include "opencv2/gpu/device/common.hpp"
+ #include "opencv2/gpu/device/utility.hpp"
+ #include "opencv2/gpu/device/functional.hpp"
+diff -Naur OpenCV-2.4.2/modules/gpu/src/nvidia/core/NCV.cu OpenCV-2.4.2-fixed/modules/gpu/src/nvidia/core/NCV.cu
+--- OpenCV-2.4.2/modules/gpu/src/nvidia/core/NCV.cu	2012-06-29 00:55:59.000000000 +0200
++++ OpenCV-2.4.2-fixed/modules/gpu/src/nvidia/core/NCV.cu	2012-07-16 15:40:06.889384752 +0200
+@@ -40,6 +40,7 @@
+ //M*/
+ 
+ 
++#undef _GLIBCXX_ATOMIC_BUILTINS
+ #include <iostream>
+ #include <string>
+ #include <vector>
+diff -Naur OpenCV-2.4.2/modules/gpu/src/nvidia/core/NCVPyramid.cu OpenCV-2.4.2-fixed/modules/gpu/src/nvidia/core/NCVPyramid.cu
+--- OpenCV-2.4.2/modules/gpu/src/nvidia/core/NCVPyramid.cu	2012-06-29 00:55:59.000000000 +0200
++++ OpenCV-2.4.2-fixed/modules/gpu/src/nvidia/core/NCVPyramid.cu	2012-07-16 15:39:18.689384231 +0200
+@@ -40,6 +40,8 @@
+ //M*/
+ 
+ 
++#undef _GLIBCXX_ATOMIC_BUILTINS
++#undef _GLIBCXX_USE_INT128
+ #include <cuda_runtime.h>
+ #include <stdio.h>
+ #include "NCV.hpp"
+diff -Naur OpenCV-2.4.2/modules/gpu/src/nvidia/NCVBroxOpticalFlow.cu OpenCV-2.4.2-fixed/modules/gpu/src/nvidia/NCVBroxOpticalFlow.cu
+--- OpenCV-2.4.2/modules/gpu/src/nvidia/NCVBroxOpticalFlow.cu	2012-06-29 00:55:59.000000000 +0200
++++ OpenCV-2.4.2-fixed/modules/gpu/src/nvidia/NCVBroxOpticalFlow.cu	2012-07-16 15:41:40.802720332 +0200
+@@ -56,6 +56,7 @@
+ //
+ ////////////////////////////////////////////////////////////////////////////////
+ 
++#undef _GLIBCXX_ATOMIC_BUILTINS
+ #include <iostream>
+ #include <vector>
+ #include <memory>
+diff -Naur OpenCV-2.4.2/modules/gpu/src/nvidia/NCVHaarObjectDetection.cu OpenCV-2.4.2-fixed/modules/gpu/src/nvidia/NCVHaarObjectDetection.cu
+--- OpenCV-2.4.2/modules/gpu/src/nvidia/NCVHaarObjectDetection.cu	2012-06-29 00:55:59.000000000 +0200
++++ OpenCV-2.4.2-fixed/modules/gpu/src/nvidia/NCVHaarObjectDetection.cu	2012-07-16 14:49:37.752637842 +0200
+@@ -55,6 +55,7 @@
+ //
+ ////////////////////////////////////////////////////////////////////////////////
+ 
++#undef _GLIBCXX_ATOMIC_BUILTINS
+ #include <algorithm>
+ #include <cstdio>
+ 
+diff -Naur OpenCV-2.4.2/modules/gpu/src/nvidia/NPP_staging/NPP_staging.cu OpenCV-2.4.2-fixed/modules/gpu/src/nvidia/NPP_staging/NPP_staging.cu
+--- OpenCV-2.4.2/modules/gpu/src/nvidia/NPP_staging/NPP_staging.cu	2012-06-29 00:55:59.000000000 +0200
++++ OpenCV-2.4.2-fixed/modules/gpu/src/nvidia/NPP_staging/NPP_staging.cu	2012-07-16 15:40:46.402718617 +0200
+@@ -40,6 +40,7 @@
+ //M*/
+ 
+ 
++#undef _GLIBCXX_ATOMIC_BUILTINS
+ #include <vector>
+ #include <cuda_runtime.h>
+ #include "NPP_staging.hpp"

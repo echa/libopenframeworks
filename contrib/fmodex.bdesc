@@ -1,0 +1,64 @@
+# Copyright 2012 KidTsunami. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# ---
+#
+# Author: Alexander Eichhorn <echa@kidtsunami.com>
+#
+# Content: build script for FMODEx (http://www.fmod.org)
+#
+
+pkgname=fmodex
+pkgver=4.42.06
+urlbase=http://www.fmod.org/index.php/release/version
+
+precond() {
+    case ${TARGET_SYSTEM} in
+    Darwin)
+        archive=fmodapi${pkgver//./}mac-installer.dmg
+        url=${urlbase}/${archive}
+        ;;
+    Linux)
+        if [ "$TARGET_ARCH" == "x86_64" ]; then
+            archive=fmodapi${pkgver//./}linux.tar.gz
+            url=${urlbase}/${archive}
+        else
+            archive=fmodapi${pkgver//./}linux64.tar.gz
+            url=${urlbase}/${archive}
+        fi
+        ;;
+    *)
+        error_msg="${pkgname} not supported on ${TARGET_SYSTEM}"
+        ;;
+    esac
+}
+
+build() {
+
+    if [ "${TARGET_SYSTEM}" == "Darwin" ]; then
+        sourcedir="${BUILDDIR}/${archive/.*/}/FMOD Programmers API/api"
+    else
+        sourcedir=${BUILDDIR}/${archive/.*/}/api
+    fi
+
+    # Copy files
+    mkdir -p ${INSTDIR}/include/fmodex
+    mkdir -p ${INSTDIR}/lib/
+
+    currdir=`pwd`
+    cd "${sourcedir}"
+    cp -r ./inc/* ${INSTDIR}/include/fmodex/
+    cp -r ./lib/* ${INSTDIR}/lib/
+    cd $currdir
+}

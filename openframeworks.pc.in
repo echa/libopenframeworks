@@ -1,0 +1,15 @@
+# Auto-Generated pkg-config file for OpenFrameworks (@CMAKE_BUILD_TYPE@ version)
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=@BIN_INSTALL_DIR@
+libdir=@LIB_INSTALL_DIR@
+includedir=@INCLUDE_INSTALL_DIR@
+
+Name: @CMAKE_PROJECT_NAME@
+Description: openFrameworks is an open source C++ toolkit designed to assist the creative process by providing a simple and intuitive framework for experimentation.
+Version: @OF_VERSION@
+Requires:
+Requires.private: @OF_PKGCONF_DEPENDS@
+Conflicts:
+Libs: -L${libdir} -lopenframeworks@OF_LIB_POSTFIX@
+Libs.private: @OF_EXPANDED_LIBDIRS@ @OF_EXPANDED_LIBS@ @OF_EXPANDED_LDFLAGS@
+Cflags: -I${includedir} @OF_EXPANDED_CFLAGS@

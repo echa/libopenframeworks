@@ -1,0 +1,56 @@
+diff -Naur oscpack/examples/OscDump.cpp oscpack-new/examples/OscDump.cpp
+--- oscpack/examples/OscDump.cpp	2006-11-20 14:49:40.000000000 +0100
++++ oscpack-new/examples/OscDump.cpp	2011-11-24 20:25:40.326881469 +0100
+@@ -36,6 +36,8 @@
+ 
+ 
+ #include <iostream>
++#include <cstring>
++#include <cstdlib>
+ 
+ #include "osc/OscReceivedElements.h"
+ #include "osc/OscPrintReceivedElements.h"
+diff -Naur oscpack/osc/OscPrintReceivedElements.cpp oscpack-new/osc/OscPrintReceivedElements.cpp
+--- oscpack/osc/OscPrintReceivedElements.cpp	2006-11-20 14:49:38.000000000 +0100
++++ oscpack-new/osc/OscPrintReceivedElements.cpp	2011-11-24 20:23:04.416877952 +0100
+@@ -32,6 +32,7 @@
+ #include <iostream>
+ #include <iomanip>
+ #include <ctime>
++#include <cstring>
+ 
+ 
+ namespace osc{
+diff -Naur oscpack/tests/OscReceiveTest.cpp oscpack-new/tests/OscReceiveTest.cpp
+--- oscpack/tests/OscReceiveTest.cpp	2006-11-20 14:49:38.000000000 +0100
++++ oscpack-new/tests/OscReceiveTest.cpp	2011-11-24 20:25:04.576880734 +0100
+@@ -31,6 +31,7 @@
+ 
+ #include <string.h>
+ #include <iostream>
++#include <cstdlib>
+ 
+ #include "osc/OscReceivedElements.h"
+ 
+diff -Naur oscpack/tests/OscSendTests.cpp oscpack-new/tests/OscSendTests.cpp
+--- oscpack/tests/OscSendTests.cpp	2006-11-20 14:49:38.000000000 +0100
++++ oscpack-new/tests/OscSendTests.cpp	2011-11-24 20:24:42.880212970 +0100
+@@ -31,6 +31,7 @@
+ 
+ #include <iostream>
+ #include <string.h>
++#include <cstdlib>
+ 
+ #include "osc/OscOutboundPacketStream.h"
+ 
+diff -Naur oscpack/tests/OscUnitTests.cpp oscpack-new/tests/OscUnitTests.cpp
+--- oscpack/tests/OscUnitTests.cpp	2006-11-20 14:49:38.000000000 +0100
++++ oscpack-new/tests/OscUnitTests.cpp	2011-11-24 20:23:58.616879011 +0100
+@@ -31,6 +31,7 @@
+ 
+ #include <iostream>
+ #include <iomanip>
++#include <cstring>
+ 
+ #include "osc/OscReceivedElements.h"
+ #include "osc/OscPrintReceivedElements.h"

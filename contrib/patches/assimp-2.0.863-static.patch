@@ -1,0 +1,12 @@
+diff -Naur assimp--2.0.863-sdk/code/CMakeLists.txt assimp--2.0.863-sdk-static/code/CMakeLists.txt
+--- assimp--2.0.863-sdk/code/CMakeLists.txt	2010-11-21 22:40:42.000000000 +0100
++++ assimp--2.0.863-sdk-static/code/CMakeLists.txt	2012-10-25 19:47:51.000000000 +0200
+@@ -453,7 +453,7 @@
+ 	../contrib/unzip/unzip.h
+ )
+ 
+-ADD_LIBRARY( assimp SHARED
++ADD_LIBRARY( assimp STATIC
+ 	3DSConverter.cpp
+ 	3DSHelper.h
+ 	3DSLoader.cpp

@@ -1,0 +1,10 @@
+--- opencv.pc.cmake.in	2010-04-06 03:24:41.000000000 +0200
++++ opencv.pc.cmake.in-new	2011-01-11 20:11:44.516487095 +0100
+@@ -8,5 +8,6 @@ includedir=@includedir@/opencv
+ Name: OpenCV
+ Description: Intel(R) Open Source Computer Vision Library
+ Version: @VERSION@
+-Libs: -L${libdir} -lml@OPENCV_DLLVERSION@ -lcvaux@OPENCV_DLLVERSION@ -lhighgui@OPENCV_DLLVERSION@ -lcv@OPENCV_DLLVERSION@  -lcxcore@OPENCV_DLLVERSION@
++Libs: -L${libdir} -lml@OPENCV_DLLVERSION@ -lcvaux@OPENCV_DLLVERSION@ -lhighgui@OPENCV_DLLVERSION@ -lcv@OPENCV_DLLVERSION@  -lcxcore@OPENCV_DLLVERSION@ -lflann@OPENCV_DLLVERSION@ -lopencv_lapack@OPENCV_DLLVERSION@ -lzlib@OPENCV_DLLVERSION@
++Libs.private: -ljpeg -ltiff -ljasper -lpng14 -lIlmImf
+ Cflags: -I${includedir}

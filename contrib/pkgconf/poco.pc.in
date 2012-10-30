@@ -1,0 +1,14 @@
+# Poco pkg-config source file
+
+prefix=##PREFIX##
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include/Poco
+
+Name: Poco
+Description: Poco Foundation C++ Libraries
+Version: ##VERSION##
+Requires:
+Conflicts:
+Libs: -L${libdir} -lPocoNet -lPocoUtil -lPocoXML -lPocoFoundation
+Cflags: -I${includedir}

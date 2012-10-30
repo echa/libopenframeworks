@@ -10,3 +10,11 @@
 *.lai
 *.la
 *.a
+
+# OSX specific files
+.DS_Store
+
+# generated files and directories
+contrib/build/
+build/
+*~

@@ -1,0 +1,72 @@
+# Copyright 2012 KidTsunami. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# ---
+#
+# Author: Alexander Eichhorn <echa@kidtsunami.com>
+#
+# Content: build script for Kiss - FFT library
+#          http://sourceforge.net/projects/kissfft/
+#
+
+pkgname=kiss
+pkgver=1.2.9
+archive=kiss_fft${pkgver//./}.zip
+url=http://downloads.sourceforge.net/project/kissfft/kissfft/v${pkgver//./_}/${archive}
+
+unpack() {
+    unzip -o ${archive}
+}
+
+build() {
+    cd kiss_fft${pkgver//./}
+
+    # build manually
+    case $TARGET_SYSTEM in
+    Darwin)
+        CFLAGS="-O3 -mtune=${TARGET_CPU} -ffast-math -fomit-frame-pointer -unroll-loops -I. -I./tools -I/usr/include/malloc"
+        ;;
+    Linux)
+        CFLAGS="-O3 -mtune=${TARGET_CPU} -ffast-math -fomit-frame-pointer -unroll-loops -I. -I./tools"
+        ;;
+    esac
+    gcc -c -o kiss_fft.o ${CFLAGS} kiss_fft.c
+    gcc -c -o kfc.o ${CFLAGS} tools/kfc.c
+    gcc -c -o kiss_fastfir.o ${CFLAGS} tools/kiss_fastfir.c
+    gcc -c -o kiss_fftnd.o ${CFLAGS} tools/kiss_fftnd.c
+    gcc -c -o kiss_fftndr.o ${CFLAGS} tools/kiss_fftndr.c
+    gcc -c -o kiss_fftr.o ${CFLAGS} tools/kiss_fftr.c
+    ar qcs libkiss.a kiss_fft.o kfc.o kiss_fastfir.o kiss_fftnd.o kiss_fftndr.o kiss_fftr.o
+
+    # Install files
+    mkdir -p ${INSTDIR}/include/kiss
+    mkdir -p ${INSTDIR}/lib
+
+    cp libkiss.a ${INSTDIR}/lib/
+    cp -r kiss_fft.h kissfft.hh _kiss_fft_guts.h tools/kfc.h tools/kiss_fftnd.h tools/kiss_fftndr.h tools/kiss_fftr.h ${INSTDIR}/include/kiss
+}
+
+pkgconf() {
+    case $TARGET_SYSTEM in
+    Darwin)
+        EXTRAI="-I/usr/include/malloc"
+        ;;
+    Linux)
+        EXTRAI=""
+        ;;
+    esac
+    cat ${PKGCONFDIR}/kiss.pc.in | sed "s%##PREFIX##%${INSTDIR}%g" | \
+        sed "s/##VERSION##/${pkgver}/" | sed "s%##EXTRAINCLUDE##%${EXTRAI}%" \
+        > ${INSTDIR}/lib/pkgconfig/kiss.pc
+}

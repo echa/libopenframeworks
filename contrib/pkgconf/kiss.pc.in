@@ -1,0 +1,15 @@
+# Kiss FFT library pkg-config source file
+
+prefix=##PREFIX##
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include/kiss
+
+Name: Kiss
+Description: Kiss FFT Library
+Version: ##VERSION##
+Requires:
+Conflicts:
+Libs: -L${libdir} -lkiss
+Libs.private: -lm
+Cflags: -I${includedir} ##EXTRAINCLUDE##

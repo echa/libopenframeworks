@@ -1,0 +1,22 @@
+diff -Naur OpenCV-2.4.2/cmake/OpenCVGenPkgconfig.cmake OpenCV-2.4.2-fixed/cmake/OpenCVGenPkgconfig.cmake
+--- OpenCV-2.4.2/cmake/OpenCVGenPkgconfig.cmake	2012-06-29 00:55:15.000000000 +0200
++++ OpenCV-2.4.2-fixed/cmake/OpenCVGenPkgconfig.cmake	2012-07-16 16:45:09.996154359 +0200
+@@ -58,8 +58,16 @@
+ # add extra dependencies required for OpenCV
+ set(OpenCV_LIB_COMPONENTS ${OpenCV_LIB_COMPONENTS_})
+ if(OpenCV_EXTRA_COMPONENTS)
+-  string(REPLACE ";" " " OpenCV_EXTRA_COMPONENTS "${OpenCV_EXTRA_COMPONENTS}")
+-  set(OpenCV_LIB_COMPONENTS "${OpenCV_LIB_COMPONENTS} ${OpenCV_EXTRA_COMPONENTS}")
++# FIX: OpenCV's cmake scripts do not set -l prefix properly, so do it here
++#  string(REPLACE ";" " " OpenCV_EXTRA_COMPONENTS "${OpenCV_EXTRA_COMPONENTS}")
++  foreach(c ${OpenCV_EXTRA_COMPONENTS})
++    if ("${c}" MATCHES "[/].*")
++      set(OpenCV_LIB_COMPONENTS "${OpenCV_LIB_COMPONENTS} ${c}")
++    else()
++      set(OpenCV_LIB_COMPONENTS "${OpenCV_LIB_COMPONENTS} -l${c}")
++    endif()
++  endforeach()
++#  set(OpenCV_LIB_COMPONENTS "${OpenCV_LIB_COMPONENTS} ${OpenCV_EXTRA_COMPONENTS}")
+ endif()
+ 
+ #generate the .pc file

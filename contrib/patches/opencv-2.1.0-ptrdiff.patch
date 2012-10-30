@@ -1,0 +1,10 @@
+--- ./include/opencv/cxcore-orig.hpp	2010-04-06 03:24:40.000000000 +0200
++++ ./include/opencv/cxcore.hpp	2011-06-13 13:59:48.333091839 +0200
+@@ -44,6 +44,7 @@
+ #define __OPENCV_CORE_HPP__
+ 
+ #include "cxmisc.h"
++#include <stddef.h>
+ 
+ #ifdef __cplusplus
+ 

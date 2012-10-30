@@ -1,0 +1,14 @@
+# RtAudio pkg-config source file
+
+prefix=##PREFIX##
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: RtAudio
+Description: RtAudio cross-platform realtime audio input/output library
+Version: ##VERSION##
+Requires:
+Conflicts:
+Libs: -L${libdir} ##LIBS##
+Cflags: ##CFLAGS##

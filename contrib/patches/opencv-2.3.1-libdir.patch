@@ -1,0 +1,32 @@
+--- CMakeLists.txt	2011-09-12 20:45:38.000000000 +0200
++++ CMakeLists.txt.new	2012-01-06 01:22:05.000000000 +0100
+@@ -598,6 +598,11 @@
+     else()
+         add_definitions(-DHAVE_ALLOCA -DHAVE_ALLOCA_H -DHAVE_LIBPTHREAD -DHAVE_UNISTD_H)
+     endif()
++
++    # set link_directories to link properly against any HIGHGUI dependency
++    foreach (P ${HIGHGUI_LIBRARY_DIRS})
++        link_directories(${P})
++    endforeach()
+ endif()
+ 
+ if(WITH_PNG AND NOT PNG_FOUND)
+@@ -1461,6 +1466,17 @@
+ set(includedir  "\${prefix}/${OPENCV_INCLUDE_PREFIX}")
+ set(VERSION     ${OPENCV_VERSION})
+ 
++# add all highui and opencv libs as private libs to pkgconfig
++# needs to be expanded and start with -l
++foreach (P ${HIGHGUI_LIBRARIES})
++    set (HIGHGUI_LIBRARIES_EXPANDED "${HIGHGUI_LIBRARIES_EXPANDED} -l${P}")
++endforeach()
++
++foreach (P ${OPENCV_LINKER_LIBS})
++    set (OPENCV_LINKER_LIBS_EXPANDED "${OPENCV_LINKER_LIBS_EXPANDED} -l${P}")
++endforeach()
++
++
+ set(OPENCV_PC_FILE_NAME opencv.pc)
+ #need to be explicit with naming the pc file and version number for side by side installs to work.
+ if(OPENCV_MANGLED_INSTALL_PATHS)

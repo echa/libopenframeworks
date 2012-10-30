@@ -1,0 +1,51 @@
+# Copyright 2012 KidTsunami. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# ---
+#
+# Author: Alexander Eichhorn <echa@kidtsunami.com>
+#
+# Content: build script for RtAudio - Realtime audio i/o C++ classes.
+#
+
+pkgname=rtaudio
+pkgver=4.0.11
+archive=rtaudio-${pkgver}.tar.gz
+url=http://www.music.mcgill.ca/~gary/rtaudio/release/${archive}
+
+build() {
+    cd rtaudio-${pkgver}
+    ./configure --prefix=${INSTDIR}
+    make
+
+    # manually install
+    mkdir -p ${INSTDIR}/include
+    mkdir -p ${INSTDIR}/lib
+
+    cp *.h ${INSTDIR}/include
+    cp *.a ${INSTDIR}/lib
+}
+
+pkgconf() {
+    # create a pkgconfig file
+    LIBS=$(cat rtaudio-${pkgver}/rtaudio-config | grep "LIBRARY=" | cut -d\" -f2)
+    CFLAGS=$(cat rtaudio-${pkgver}/rtaudio-config | grep "CPPFLAGS=" | cut -d\" -f2)
+
+    # add librtaudio.a itself
+    LIBS="-lrtaudio ${LIBS}"
+
+    cat ${PKGCONFDIR}/rtaudio.pc.in | sed "s%##PREFIX##%${INSTDIR}%g" | \
+       sed "s/##VERSION##/${pkgver}/" | sed "s/##LIBS##/${LIBS}/" | \
+       sed "s/##CFLAGS##/${CFLAGS}/" > ${INSTDIR}/lib/pkgconfig/rtaudio.pc
+}

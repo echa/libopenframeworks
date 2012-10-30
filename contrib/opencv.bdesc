@@ -1,0 +1,94 @@
+# Copyright 2012 KidTsunami. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# ---
+#
+# Author: Alexander Eichhorn <echa@kidtsunami.com>
+#
+# Content: build script for OpenCV
+
+pkgname=opencv
+pkgver=2.4.2
+archive=OpenCV-${pkgver}.tar.bz2
+url=http://downloads.sourceforge.net/project/opencvlibrary/opencv-unix/${pkgver}/${archive}
+
+build() {
+    OPENCV_BUILD=build_opencv
+
+    # cleanup the build directory forst
+    rm -rf ${OPENCV_BUILD}
+
+    cd OpenCV-${pkgver}
+    if [ $pkgver == "2.2.0" ]; then
+        patch -fN -p0 < ${PATCHDIR}/opencv-2.2.0-pkgconf.patch
+    elif [ $pkgver == "2.1.0" ]; then
+        patch -fN -p0 < ${PATCHDIR}/opencv-2.1.0-pkgconf.patch
+        patch -fN -p0 < ${PATCHDIR}/opencv-2.1.0-png14.patch
+        patch -fN -p0 < ${PATCHDIR}/opencv-2.1.0-ptrdiff.patch
+    elif [ $pkgver == "2.3.1" ]; then
+        case ${TARGET_SYSTEM} in
+        Linux)
+            patch -fN -p0 < ${PATCHDIR}/opencv-2.3.1-pkgconf-linux.patch
+            ;;
+        Darwin)
+            patch -fN -p0 < ${PATCHDIR}/opencv-2.3.1-pkgconf-osx.patch
+            patch -fN -p1 < ${PATCHDIR}/opencv-2.3.1-flann-osx.patch
+            ;;
+        esac
+        patch -fN -p0 < ${PATCHDIR}/opencv-2.3.1-libdir.patch
+    elif [ $pkgver == "2.4.2" ]; then
+        case ${TARGET_SYSTEM} in
+        Linux)
+            patch -fN -p1 < ${PATCHDIR}/opencv-2.4.2-pkgconf-linux.patch
+            patch -fN -p1 < ${PATCHDIR}/opencv-2.4.2-cuda-linux.patch
+            ;;
+        Darwin)
+            # nothing to do so far
+            ;;
+        esac
+    else
+        echo "WARNING: not patchset for opencv version defined. compile may be broken."
+    fi
+
+    cd ..
+    mkdir -p ${OPENCV_BUILD}
+    cd ${OPENCV_BUILD}
+    case ${TARGET_SYSTEM} in
+    Darwin)
+        CMAKE_ARGS="-D BUILD_NEW_PYTHON_SUPPORT=OFF -D BUILD_SHARED_LIBS=OFF -D\
+        BUILD_TESTS=OFF -D BUILD_EXAMPLES=OFF -D BUILD_PERF_TESTS=OFF -D WITH_FFMPEG=FALSE -D\
+        WITH_GTK=FALSE -D WITH_GSTREAMER=FALSE -D WITH_CUDA=FALSE -D\
+        WITH_PVAPI=OFF -D WITH_EIGEN=TRUE"
+        ;;
+    Linux)
+        CMAKE_ARGS="-D BUILD_NEW_PYTHON_SUPPORT=OFF -D BUILD_SHARED_LIBS=OFF -D\
+        BUILD_TESTS=OFF -D BUILD_EXAMPLES=OFF -D BUILD_PERF_TESTS=OFF -D WITH_FFMPEG=FALSE -D\
+        WITH_GSTREAMER=FALSE -D WITH_CUDA=TRUE -D WITH_PVAPI=OFF -D\
+        WITH_EIGEN=TRUE"
+        ;;
+    esac
+
+    cmake -D CMAKE_SYSTEM_PROCESSOR=${TARGET_ARCH} -D\
+      OPENCV_EXTRA_C_FLAGS=-D__STDC_CONSTANT_MACROS -D CMAKE_BUILD_TYPE=RELEASE\
+      -D CMAKE_INSTALL_PREFIX=${INSTDIR} ${CMAKE_ARGS} ../OpenCV-${pkgver}
+    make -j 4
+    make install
+
+    # also copy the missing 3rd party libs (BUG in OpenCV which forgets to install static 3rd party libs)
+    if [ $pkgver == "2.1.0" ]; then
+        cp ./3rdparty/lib/libflann.a ./3rdparty/lib/libopencv_lapack.a ./3rdparty/lib/libzlib.a ${INSTDIR}/lib
+    elif [ $pkgver == "2.2.0" ]; then
+        cp ./3rdparty/lib/libopencv_lapack.a ./3rdparty/lib/libzlib.a ${INSTDIR}/lib
+    fi
+}

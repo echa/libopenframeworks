@@ -1,0 +1,10 @@
+--- opencv.pc.cmake.in.new	2010-12-05 04:35:25.000000000 +0100
++++ opencv.pc.cmake.in	2011-01-03 22:01:54.000000000 +0100
+@@ -9,5 +9,6 @@ includedir_new=@includedir@
+ Name: OpenCV
+ Description: Open Source Computer Vision Library
+ Version: @VERSION@
+-Libs: -L${libdir} -lopencv_core@OPENCV_DLLVERSION@ -lopencv_imgproc@OPENCV_DLLVERSION@ -lopencv_highgui@OPENCV_DLLVERSION@ -lopencv_ml@OPENCV_DLLVERSION@ -lopencv_video@OPENCV_DLLVERSION@ -lopencv_features2d@OPENCV_DLLVERSION@ -lopencv_calib3d@OPENCV_DLLVERSION@ -lopencv_objdetect@OPENCV_DLLVERSION@ -lopencv_contrib@OPENCV_DLLVERSION@ -lopencv_legacy@OPENCV_DLLVERSION@ -lopencv_flann@OPENCV_DLLVERSION@
++Libs: -L${libdir} -lopencv_legacy@OPENCV_DLLVERSION@ -lopencv_calib3d@OPENCV_DLLVERSION@ -lopencv_features2d@OPENCV_DLLVERSION@ -lopencv_imgproc@OPENCV_DLLVERSION@ -lopencv_highgui@OPENCV_DLLVERSION@ -lopencv_ml@OPENCV_DLLVERSION@ -lopencv_video@OPENCV_DLLVERSION@ -lopencv_objdetect@OPENCV_DLLVERSION@ -lopencv_contrib@OPENCV_DLLVERSION@ -lopencv_flann@OPENCV_DLLVERSION@ -lopencv_imgproc@OPENCV_DLLVERSION@ -lopencv_core@OPENCV_DLLVERSION@ -Wl,-framework,Cocoa -Wl,-framework,QuartzCore -Wl,-framework,QTKit
++Libs.private: @HIGHGUI_LIBRARIES_EXPANDED@ @OPENCV_LINKER_LIBS_EXPANDED@ -ljpeg -lpng -ltiff -ljasper -lIlmImf -lHalf -lbz2 
+ Cflags: -I${includedir_old} -I${includedir_new}
