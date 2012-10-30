@@ -111,10 +111,10 @@ set (OFX_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/Libdc1394Grabber/Libdc1394GrabberFramerateHelper.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Libdc1394Grabber/Libdc1394GrabberUtils.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Libdc1394Grabber/Libdc1394GrabberVideoFormatHelper.h
-    ${CMAKE_CURRENT_SOURCE_DIR}ofxIIDCSettings.h
-    ${CMAKE_CURRENT_SOURCE_DIR}ofxVideoGrabber.h
-    ${CMAKE_CURRENT_SOURCE_DIR}ofxVideoGrabberFeature.h
-    ${CMAKE_CURRENT_SOURCE_DIR}ofxVideoGrabberSDK.h
-    ${CMAKE_CURRENT_SOURCE_DIR}ofxVideoGrabberSettings.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ofxIIDCSettings.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ofxVideoGrabber.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ofxVideoGrabberFeature.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ofxVideoGrabberSDK.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ofxVideoGrabberSettings.h
     PARENT_SCOPE
 )
