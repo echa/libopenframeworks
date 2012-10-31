@@ -73,7 +73,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
         SET (IS_AMD64 false)
         set (IS_LINUX32 true)
     endif ()
-    set (CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so")
+    set (CMAKE_find_library_SUFFIXES ".a" ".so")
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -83,7 +83,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     else ()
         set (IS_DARWIN32 true)
     endif ()
-    set (CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".dylib")
+    set (CMAKE_find_library_SUFFIXES ".a" ".dylib")
 endif ()
 
 
@@ -118,7 +118,7 @@ set(CMAKE_RELEASE_POSTFIX "")
 set(CMAKE_DEBUG_POSTFIX "d")
 
 ## Examples
-option (BUILD_EXAMPLES "Build OpenFrameworks Example Programs (default: false)" false)
+option (BUILD_EXAMPLES "Build OpenFrameworks Example Programs" false)
 
 #--------------------------------------------------------------------------
 # CMake PATH Configuration
@@ -140,6 +140,7 @@ set( BIN_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/bin/ CACHE PATH
      "Install path for executables." )
 set( SHARE_INSTALL_DIR ${CMAKE_INSTALL_PREFIX}/share/openframeworks CACHE PATH
      "Install path for shared data.")
+set( CMAKECONFIG_INSTALL_DIR ${LIB_INSTALL_DIR}/cmake/of )
 
 ## create separate BUILD directories for libs and binaries (valid for in-source
 #  and out-of-source builds)
@@ -165,8 +166,8 @@ set (EXTRA_DATA_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/share/openframeworks
 # Macro: REQUIRES (the dependency must be defined to build)
 #--------------------------------------------------------------------------
 macro (REQUIRES DEPENDENCY MSG)
-    if (NOT DEFINED ${DEPENDENCY})
-        MESSAGE("EE ${MSG}: ${DEPENDENCY} not defined")
+    if (NOT DEFINED ${DEPENDENCY} OR NOT ${DEPENDENCY})
+        message("EE ${MSG}: ${DEPENDENCY} not defined")
         RETURN()
     endif ()
 endmacro ()
@@ -184,6 +185,7 @@ macro (SET_EMPTY_DEPENDENCY DEP)
         set (${DEP}_CFLAGS "")
         set (${DEP}_LDFLAGS "")
         set (${DEP}_LIBS "")
+        set (HAVE_${DEP} false)
     endif ()
 endmacro ()
 
@@ -287,9 +289,9 @@ macro (APPEND_FRAMEWORKS T S)
 endmacro ()
 
 
-MESSAGE("==================================================================")
-MESSAGE(" OpenFrameworks Library ")
-MESSAGE("==================================================================")
+message("==================================================================")
+message(" OpenFrameworks Library ")
+message("==================================================================")
 
 #--------------------------------------------------------------------------
 # Build Dependencies Check
@@ -303,17 +305,14 @@ set (MPG123_MIN_VERSION 1.12.1)
 set (CAIRO_MIN_VERSION 1.10.0)
 set (OPENASSETIMPORT_MIN_VERSION 2.0)
 
-# avoid empty LD_FLAGS
-#set (OF_CORE_LDFLAGS " ")
-
 #--------------------------------------------------------------------------
 # Fmodex (Note: find requires correct CMAKE_PREFIX_PATH)
 #--------------------------------------------------------------------------
 message (STATUS "Checking for Fmod...")
-FIND_LIBRARY(FMOD_LIBRARIES NAMES fmodex fmodex64 DOC "Fmod Audio Library")
-FIND_LIBRARY(FMODL_LIBRARIES NAMES fmodexL fmodexL64 DOC "Fmod Audio Library")
+find_library(FMOD_LIBRARIES NAMES fmodex fmodex64 DOC "Fmod Audio Library")
+find_library(FMODL_LIBRARIES NAMES fmodexL fmodexL64 DOC "Fmod Audio Library")
 if (NOT FMOD_LIBRARIES OR NOT FMODL_LIBRARIES)
-    MESSAGE("EE FMod libraries NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
+    message("EE FMod libraries NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
     set (OF_BROKEN_DEPENDENCY true)
     SET_EMPTY_DEPENDENCY(FMOD)
 else ()
@@ -347,14 +346,15 @@ endif ()
 #--------------------------------------------------------------------------
 # Gstreamer (also requires udev)
 #--------------------------------------------------------------------------
-FIND_PACKAGE(GStreamer ${GSTREAMER_MIN_VERSION})
-FIND_PACKAGE(Udev)
+find_package(GStreamer ${GSTREAMER_MIN_VERSION})
+find_package(Udev)
 if (NOT GST_FOUND OR NOT UDEV_FOUND)
     if (NOT GST_FOUND)
-        MESSAGE("WW GStreamer >= ${GSTREAMER_MIN_VERSION} NOT FOUND: some video components disabled. Please install package gstreamer to enable.")
-        SET_EMPTY_DEPENDENCY(GST)
-    else ()
-        MESSAGE("WW libudev NOT FOUND, Gstreamer video disabled. Please install libudev-dev to enable.")
+        message("WW GStreamer >= ${GSTREAMER_MIN_VERSION} NOT FOUND: some video components disabled. Please install package gstreamer to enable.")
+        SET_EMPTY_DEPENDENCY(GSTREAMER)
+    endif ()
+    if (NOT UDEV_FOUND)
+        message("WW libudev NOT FOUND, Gstreamer video disabled. Please install package libudev-dev to enable.")
         SET_EMPTY_DEPENDENCY(UDEV)
     endif ()
 else ()
@@ -376,9 +376,9 @@ endif ()
 #--------------------------------------------------------------------------
 # Freetype
 #--------------------------------------------------------------------------
-FIND_PACKAGE(Freetype)
+find_package(Freetype)
 if (NOT FREETYPE_FOUND)
-    MESSAGE("EE Freetype Library NOT FOUND, please install libfreetype6-dev")
+    message("EE Freetype Library NOT FOUND, please install libfreetype6-dev")
     set (OF_BROKEN_DEPENDENCY true)
     SET_EMPTY_DEPENDENCY(FREETYPE)
 else ()
@@ -395,9 +395,9 @@ endif ()
 # FreeImage
 #--------------------------------------------------------------------------
 message (STATUS "Checking for FreeImage...")
-FIND_LIBRARY(FREEIMAGE_LIBRARIES NAMES FreeImage freeimage)
+find_library(FREEIMAGE_LIBRARIES NAMES FreeImage freeimage)
 if (NOT FREEIMAGE_LIBRARIES)
-    MESSAGE("EE FreeImage libraries NOT FOUND, please install libfreeimage-dev")
+    message("EE FreeImage libraries NOT FOUND, please install libfreeimage-dev")
     set (OF_BROKEN_DEPENDENCY true)
     SET_EMPTY_DEPENDENCY(FREEIMAGE)
 else ()
@@ -433,7 +433,7 @@ ENDIF ()
 message(STATUS "Checking for OpenGL...")
 find_package(OpenGL QUIET)
 if (NOT OPENGL_FOUND)
-    MESSAGE("EE OpenGL Libraries NOT FOUND. Please install packages (e.g. freeglut3-dev libglu1-mesa-dev libgl-mesa-dev libglu-dev)")
+    message("EE OpenGL Libraries NOT FOUND. Please install packages (e.g. freeglut3-dev libglu1-mesa-dev libgl-mesa-dev libglu-dev)")
     set (OF_BROKEN_DEPENDENCY true)
     SET_EMPTY_DEPENDENCY(OPENGL)
 else ()
@@ -446,12 +446,12 @@ else ()
     if (IS_DARWIN)
         set (OPENGL_LIBRARIES "")
         set (OPENGL_LDFLAGS "-framework;OpenGL;-framework;AGL")
-        APPEND_FRAMEWORKS(OF_CORE_FRAMEWORKS OPENGL_LDFLAGS)
+        APPEND_FRAMEWORKS(OF_FRAMEWORKS OPENGL_LDFLAGS)
     else ()
         set (OF_CORE_LIBS ${OF_CORE_LIBS} ${OPENGL_LIBRARIES})
     endif ()
 
-    MESSAGE(STATUS "  OpenGL found.")
+    message(STATUS "  OpenGL found.")
     message(STATUS "    includes: ${OPENGL_INCLUDE_DIR}")
     message(STATUS "    library:  ${OPENGL_LIBRARIES}")
     message(STATUS "    libdir:   ${OPENGL_LIBRARY_DIRS}")
@@ -467,7 +467,7 @@ endif ()
 message(STATUS "Checking for GLUT...")
 find_package(GLUT QUIET)
 if (NOT GLUT_FOUND)
-    MESSAGE("EE GL Utility Library glut NOT FOUND. Please install packages (e.g. freeglut3-dev)")
+    message("EE GL Utility Library glut NOT FOUND. Please install packages (e.g. freeglut3-dev)")
     set (OF_BROKEN_DEPENDENCY true)
     SET_EMPTY_DEPENDENCY(GLUT)
 else ()
@@ -481,12 +481,12 @@ else ()
         # create a list: -framework;Name1;-framework;Name2
         string(REPLACE " " ";" GLUT_LDFLAGS "${GLUT_LIBRARIES}")
         set(GLUT_LIBRARIES "")
-        APPEND_FRAMEWORKS(OF_CORE_FRAMEWORKS GLUT_LDFLAGS)
+        APPEND_FRAMEWORKS(OF_FRAMEWORKS GLUT_LDFLAGS)
     else ()
         set (OF_CORE_LIBS ${OF_CORE_LIBS} ${GLUT_LIBRARIES})
     endif ()
 
-    MESSAGE(STATUS "  GLUT found.")
+    message(STATUS "  GLUT found.")
     message(STATUS "    includes: ${GLUT_INCLUDE_DIR}")
     message(STATUS "    library:  ${GLUT_LIBRARIES}")
     message(STATUS "    libdir:   ${GLUT_LIBRARY_DIRS}")
@@ -501,7 +501,7 @@ endif ()
 #--------------------------------------------------------------------------
 find_package(GLEW)
 if (NOT GLEW_FOUND)
-    MESSAGE("EE GLEW Library NOT FOUND. Please install packages (e.g. glew)")
+    message("EE GLEW Library NOT FOUND. Please install packages (e.g. glew)")
     set (OF_BROKEN_DEPENDENCY true)
     SET_EMPTY_DEPENDENCY(GLEW)
 else ()
@@ -519,7 +519,7 @@ endif ()
 #--------------------------------------------------------------------------
 find_package(Poco)
 if (NOT POCO_FOUND)
-    MESSAGE("WW Poco Foundation libraries NOT FOUND: oF Events, oF Arduino and ofxVideoGrabber disabled. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
+    message("WW Poco Foundation libraries NOT FOUND: oF Events, oF Arduino and ofxVideoGrabber disabled. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
     SET_EMPTY_DEPENDENCY(POCO)
 else ()
     SET_CONFIG_VAR (HAVE_POCO)
@@ -545,14 +545,14 @@ endif ()
 #--------------------------------------------------------------------------
 FIND_package(RtAudio)
 if (NOT RTAUDIO_FOUND)
-    MESSAGE("WW RtAudio library NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
+    message("WW RtAudio library NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
     SET_EMPTY_DEPENDENCY(RTAUDIO)
 else ()
     set (OF_CORE_INCLUDES ${OF_CORE_INCLUDES} ${RTAUDIO_INCLUDE_DIRS})
     set (OF_CORE_LIBS ${OF_CORE_LIBS} ${RTAUDIO_LIBRARIES})
     set (OF_CORE_CFLAGS ${OF_CORE_CFLAGS} ${RTAUDIO_CFLAGS} -DOF_SOUNDSTREAM_RTAUDIO)
 #    set (OF_CORE_LDFLAGS ${OF_CORE_LDFLAGS} ${RTAUDIO_LDFLAGS})
-    APPEND_FRAMEWORKS(OF_CORE_FRAMEWORKS RTAUDIO_LDFLAGS)
+    APPEND_FRAMEWORKS(OF_FRAMEWORKS RTAUDIO_LDFLAGS)
     set (OF_CORE_LIBDIRS ${OF_CORE_LIBDIRS} ${RTAUDIO_LIBRARY_DIRS})
     SET_CONFIG_VAR (HAVE_RTAUDIO)
     set (OF_PKGCONF_DEPENDS ${OF_PKGCONF_DEPENDS} "rtaudio")
@@ -561,16 +561,16 @@ endif ()
 #--------------------------------------------------------------------------
 # PortAudio (new in oF 0.07)
 #--------------------------------------------------------------------------
-FIND_PACKAGE(PortAudio ${PORTAUDIO_MIN_VERSION})
+find_package(PortAudio ${PORTAUDIO_MIN_VERSION})
 if (NOT PORTAUDIO_FOUND)
-    MESSAGE("WW PortAudio NOT FOUND. Please install packages (e.g. portaudio and portaudio_cpp)")
+    message("WW PortAudio NOT FOUND. Please install packages (e.g. portaudio and portaudio_cpp)")
     SET_EMPTY_DEPENDENCY(PORTAUDIO)
 else ()
     set (OF_CORE_INCLUDES ${OF_CORE_INCLUDES} ${PORTAUDIO_INCLUDE_DIRS})
     set (OF_CORE_LIBS ${OF_CORE_LIBS} ${PORTAUDIO_LIBRARIES})
     set (OF_CORE_CFLAGS ${OF_CORE_CFLAGS} ${PORTAUDIO_CFLAGS} -DOF_SOUNDSTREAM_PORTAUDIO)
 #    set (OF_CORE_LDFLAGS ${OF_CORE_LDFLAGS} ${PORTAUDIO_LDFLAGS})
-    APPEND_FRAMEWORKS(OF_CORE_FRAMEWORKS PORTAUDIO_LDFLAGS)
+    APPEND_FRAMEWORKS(OF_FRAMEWORKS PORTAUDIO_LDFLAGS)
     set (OF_CORE_LIBDIRS ${OF_CORE_LIBDIRS} ${PORTAUDIO_LIBRARY_DIRS})
     SET_CONFIG_VAR (HAVE_PORTAUDIO)
     set (OF_PKGCONF_DEPENDS ${OF_PKGCONF_DEPENDS} "portaudio-2.0")
@@ -579,20 +579,20 @@ endif ()
 #--------------------------------------------------------------------------
 # OpenAL (new in oF 0.07, requires KISS)
 #--------------------------------------------------------------------------
-FIND_PACKAGE(SndFile)
-FIND_PACKAGE(Kiss)
-FIND_PACKAGE(OpenAL ${OPENAL_MIN_VERSION})
+find_package(SndFile)
+find_package(Kiss)
+find_package(OpenAL ${OPENAL_MIN_VERSION})
 if (NOT OPENAL_FOUND OR NOT KISS_FOUND OR NOT SNDFILE_FOUND)
     if (NOT OPENAL_FOUND)
-        MESSAGE("WW OpenAL NOT FOUND. Please install packages (e.g. openal)")
+        message("WW OpenAL NOT FOUND. Please install packages (e.g. openal)")
         SET_EMPTY_DEPENDENCY(OPENAL)
     endif ()
     if (NOT KISS_FOUND)
-        MESSAGE("WW Kiss library NOT FOUND. This library is required for OpenAL support in oF. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
+        message("WW Kiss library NOT FOUND. This library is required for OpenAL support in oF. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
         SET_EMPTY_DEPENDENCY(KISS)
     endif ()
     if (NOT SNDFILE_FOUND)
-        MESSAGE("WW sndfile library NOT FOUND. This library is required for OpenAL support in oF. Please install package (e.g. libsndfile)")
+        message("WW sndfile library NOT FOUND. This library is required for OpenAL support in oF. Please install package (e.g. libsndfile)")
         SET_EMPTY_DEPENDENCY(SNDFILE)
     endif ()
 else ()
@@ -600,7 +600,7 @@ else ()
     set (OF_CORE_LIBS ${OF_CORE_LIBS} ${OPENAL_LIBRARIES})
     set (OF_CORE_CFLAGS ${OF_CORE_CFLAGS} ${OPENAL_CFLAGS} -DOF_SOUND_PLAYER_OPENAL)
 #    set (OF_CORE_LDFLAGS ${OF_CORE_LDFLAGS} ${OPENAL_LDFLAGS})
-    APPEND_FRAMEWORKS(OF_CORE_FRAMEWORKS OPENAL_LDFLAGS)
+    APPEND_FRAMEWORKS(OF_FRAMEWORKS OPENAL_LDFLAGS)
     set (OF_CORE_LIBDIRS ${OF_CORE_LIBDIRS} ${OPENAL_LIBRARY_DIRS})
     SET_CONFIG_VAR (HAVE_OPENAL)
     set (OF_CORE_INCLUDES ${OF_CORE_INCLUDES} ${KISS_INCLUDE_DIRS})
@@ -622,9 +622,9 @@ endif ()
 #--------------------------------------------------------------------------
 # MPG123 (new in oF 0.07)
 #--------------------------------------------------------------------------
-FIND_PACKAGE(MPG123 ${MPG123_MIN_VERSION})
+find_package(MPG123 ${MPG123_MIN_VERSION})
 if (NOT MPG123_FOUND)
-    MESSAGE("WW MPG123 NOT FOUND. Please install packages (e.g. mpg123)")
+    message("WW MPG123 NOT FOUND. Please install packages (e.g. mpg123)")
     SET_EMPTY_DEPENDENCY(MPG123)
 else ()
     set (OF_CORE_INCLUDES ${OF_CORE_INCLUDES} ${MPG123_INCLUDE_DIRS})
@@ -639,9 +639,9 @@ endif ()
 #--------------------------------------------------------------------------
 # OpenAssetImport (new in oF 0.07)
 #--------------------------------------------------------------------------
-FIND_PACKAGE(OpenAssetImport ${OPENASSETIMPORT_MIN_VERSION})
+find_package(OpenAssetImport ${OPENASSETIMPORT_MIN_VERSION})
 if (NOT OAI_FOUND)
-    MESSAGE("WW OpenAssetImport library NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
+    message("WW OpenAssetImport library NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
     SET_EMPTY_DEPENDENCY(OAI)
 else ()
     set (OF_CORE_INCLUDES ${OF_CORE_INCLUDES} ${OAI_INCLUDE_DIRS})
@@ -657,9 +657,9 @@ endif ()
 #--------------------------------------------------------------------------
 # Cairo (new in oF 0.07)
 #--------------------------------------------------------------------------
-FIND_PACKAGE(Cairo ${CAIRO_MIN_VERSION})
+find_package(Cairo ${CAIRO_MIN_VERSION})
 if (NOT CAIRO_FOUND)
-    MESSAGE("EE Cairo NOT FOUND. Please install packages (e.g. cairo)")
+    message("EE Cairo NOT FOUND. Please install packages (e.g. cairo)")
     set (OF_BROKEN_DEPENDENCY true)
     SET_EMPTY_DEPENDENCY(CAIRO)
 else ()
@@ -675,9 +675,9 @@ endif ()
 #--------------------------------------------------------------------------
 # Tess2 (new in oF 0.07)
 #--------------------------------------------------------------------------
-FIND_PACKAGE(Tess2)
+find_package(Tess2)
 if (NOT TESS2_FOUND)
-    MESSAGE("EE Tess2 NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
+    message("EE Tess2 NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
     set (OF_BROKEN_DEPENDENCY true)
     SET_EMPTY_DEPENDENCY(TESS2)
 else ()
@@ -685,7 +685,7 @@ else ()
     set (OF_CORE_LIBS ${OF_CORE_LIBS} ${TESS2_LIBRARIES})
     set (OF_CORE_CFLAGS ${OF_CORE_CFLAGS} ${TESS2_CFLAGS})
 #    set (OF_CORE_LDFLAGS ${OF_CORE_LDFLAGS} ${TESS2_LDFLAGS})
-    APPEND_FRAMEWORKS(OF_CORE_FRAMEWORKS TESS2_LDFLAGS)
+    APPEND_FRAMEWORKS(OF_FRAMEWORKS TESS2_LDFLAGS)
     set (OF_CORE_LIBDIRS ${OF_CORE_LIBDIRS} ${TESS2_LIBRARY_DIRS})
     SET_CONFIG_VAR (HAVE_TESS2)
     set (OF_PKGCONF_DEPENDS ${OF_PKGCONF_DEPENDS} "tess2")
@@ -695,9 +695,9 @@ endif ()
 #--------------------------------------------------------------------------
 # TinyXML (required for addon)
 #--------------------------------------------------------------------------
-FIND_PACKAGE(TinyXML ${TinyXML_MIN_VERSION})
+find_package(TinyXML ${TinyXML_MIN_VERSION})
 if (NOT TINYXML_FOUND)
-    MESSAGE("WW TinyXML >= ${TinyXML_MIN_VERSION} NOT FOUND: XML read/write support disabled. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
+    message("WW TinyXML >= ${TinyXML_MIN_VERSION} NOT FOUND: XML read/write support disabled. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
     SET_EMPTY_DEPENDENCY(TINYXML)
 else ()
     SET_CONFIG_VAR (HAVE_TINYXML)
@@ -712,9 +712,9 @@ endif ()
 #--------------------------------------------------------------------------
 # DC1394 (required for addon)
 #--------------------------------------------------------------------------
-FIND_PACKAGE(DC1394)
+find_package(DC1394)
 if (NOT DC1394_FOUND)
-    MESSAGE("WW libdc1394 NOT FOUND: IEEE1394 support disabled. Please install packages.")
+    message("WW libdc1394 NOT FOUND: IEEE1394 support disabled. Please install packages.")
     SET_EMPTY_DEPENDENCY(DC1394)
 else ()
     SET_CONFIG_VAR (HAVE_DC1394)
@@ -729,9 +729,9 @@ endif ()
 #--------------------------------------------------------------------------
 # OpenCV (required for addon)
 #--------------------------------------------------------------------------
-FIND_PACKAGE(OpenCV ${OPENCV_MIN_VERSION})
+find_package(OpenCV ${OPENCV_MIN_VERSION})
 if (NOT OPENCV_FOUND)
-    MESSAGE("WW OpenCV >= ${OPENCV_MIN_VERSION} NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly OR install system-wide package.")
+    message("WW OpenCV >= ${OPENCV_MIN_VERSION} NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly OR install system-wide package.")
     SET_EMPTY_DEPENDENCY(OPENCV)
 else ()
     SET_CONFIG_VAR (HAVE_OPENCV)
@@ -740,7 +740,7 @@ else ()
     set (OF_CORE_LIBS ${OF_CORE_LIBS} ${OPENCV_LIBRARIES})
     set (OF_CORE_CFLAGS ${OF_CORE_CFLAGS} ${OPENCV_CFLAGS})
 #    set (OF_CORE_LDFLAGS ${OF_CORE_LDFLAGS} ${OPENCV_LDFLAGS})
-    APPEND_FRAMEWORKS(OF_CORE_FRAMEWORKS OPENCV_LDFLAGS)
+    APPEND_FRAMEWORKS(OF_FRAMEWORKS OPENCV_LDFLAGS)
     set (OF_CORE_LIBDIRS ${OF_CORE_LIBDIRS} ${OPENCV_LIBRARY_DIRS})
 endif ()
 
@@ -748,9 +748,9 @@ endif ()
 # OSC (required for addon)
 #--------------------------------------------------------------------------
 message (STATUS "Checking for OSCpack...")
-FIND_LIBRARY(OSC oscpack DOC "Open Sound Control Library")
+find_library(OSC oscpack DOC "Open Sound Control Library")
 if (NOT OSC)
-    MESSAGE("WW OSCpack library NOT FOUND, please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
+    message("WW OSCpack library NOT FOUND, please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
     SET_EMPTY_DEPENDENCY(OSC)
 else ()
     get_filename_component(OSC_LIBRARY_PATH ${OSC} PATH)
@@ -763,7 +763,7 @@ else ()
     set (OF_CORE_LIBS ${OF_CORE_LIBS} ${OSC_LIBRARY_NAME})
     set (OF_CORE_LIBDIRS ${OF_CORE_LIBDIRS} ${OSC_LIBRARY_PATH})
 
-    MESSAGE(STATUS "  OSCpack found.")
+    message(STATUS "  OSCpack found.")
     message(STATUS "    includes: ${OSC_INCLUDE_PATH}, ${OSCIP_INCLUDE_PATH}")
     message(STATUS "    library:  ${OSC_LIBRARY_NAME}")
     message(STATUS "    libdir:   ${OSC_LIBRARY_PATH}")
@@ -775,9 +775,9 @@ endif ()
 # CreEPS (required for addon)
 #--------------------------------------------------------------------------
 message (STATUS "Checking for CreEPS...")
-FIND_LIBRARY(CREEPS CreEPS DOC "Create EPS Library")
+find_library(CREEPS CreEPS DOC "Create EPS Library")
 if (NOT CREEPS)
-    MESSAGE("WW CreEPS library NOT FOUND, please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
+    message("WW CreEPS library NOT FOUND, please install from contrib/ AND set CMAKE_PREFIX_PATH properly")
     SET_EMPTY_DEPENDENCY(CREEPS)
 else ()
     get_filename_component(CREEPS_LIBRARY_PATH ${CREEPS} PATH)
@@ -809,7 +809,7 @@ endif ()
 #   FAIL on serious error (when required library dependency is not present)
 #--------------------------------------------------------------------------
 if (OF_BROKEN_DEPENDENCY)
-    MESSAGE("EE Cannot build OpenFrameworks Library. See details above.")
+    message("EE Cannot build OpenFrameworks Library. See details above.")
     SET_EMPTY_DEPENDENCY(OF_CORE)
     return ()
 endif ()
@@ -821,7 +821,7 @@ set (HAVE_OPENFRAMEWORKS true)
 #--------------------------------------------------------------------------
 
 if (IS_DARWIN32)
-  list(APPEND OF_CORE_FRAMEWORKS
+  list(APPEND OF_FRAMEWORKS
        "-framework QuickTime"
        "-framework QTKit"
        "-framework CoreVideo"
@@ -829,7 +829,7 @@ if (IS_DARWIN32)
 endif ()
 
 if (IS_DARWIN64)
-  list(APPEND OF_CORE_FRAMEWORKS
+  list(APPEND OF_FRAMEWORKS
        "-framework QTKit"
        "-framework CoreVideo"
        "-framework Carbon")
@@ -837,7 +837,7 @@ endif ()
 
 
 # add the oF directories to the include list
-set (OF_CORE_INCLUDES
+set (OF_INCLUDES
     ${OF_CORE_INCLUDES}
     ${CMAKE_SOURCE_DIR}/openframeworks
     ${CMAKE_SOURCE_DIR}/openframeworks/3d
@@ -870,9 +870,9 @@ set (OF_CORE_INCLUDES
 #       OFX_LIBS                   - all addons libraries
 #       OFX_SOURCES                - all source files for addons
 #--------------------------------------------------------------------------
-MESSAGE("==================================================================")
-MESSAGE(" OpenFrameworks Addons ")
-MESSAGE("==================================================================")
+message("==================================================================")
+message(" OpenFrameworks Addons ")
+message("==================================================================")
 add_subdirectory (openframeworks/addon/ofxXmlSettings/)
 add_subdirectory (openframeworks/addon/ofx3DModelLoader/)
 add_subdirectory (openframeworks/addon/ofxAccelerometer/)
@@ -1128,9 +1128,9 @@ include_directories (${CMAKE_BINARY_DIR})
 # Set final variables for library building and output to pkgconf
 #--------------------------------------------------------------------------
 
-# Inludes
+# Inludes -----------------------------------------------------------------
 #
-set (OF_INCLUDES ${OF_CORE_INCLUDES} ${OFX_INCLUDES})
+set (OF_INCLUDES ${OF_INCLUDES} ${OFX_INCLUDES})
 if (OF_INCLUDES)
 
     list (REMOVE_DUPLICATES OF_INCLUDES)
@@ -1141,7 +1141,7 @@ if (OF_INCLUDES)
 
 endif()
 
-# CFlags
+# CFlags -----------------------------------------------------------------
 #
 set (OF_CFLAGS ${OF_CORE_CFLAGS} ${OFX_CFLAGS})
 if (OF_CFLAGS)
@@ -1152,7 +1152,7 @@ if (OF_CFLAGS)
 
 endif ()
 
-# Internal CFlags (used during build only)
+# Internal CFlags (used during build only) -------------------------------
 #
 if (CMAKE_BUILD_TYPE STREQUAL "debug")
     set (OF_CFLAGS_INTERNAL
@@ -1172,7 +1172,7 @@ if (OF_CFLAGS_INTERNAL)
 
 endif ()
 
-# Library search dirs
+# Library search dirs ----------------------------------------------------
 #
 set (OF_LIBDIRS ${OF_CORE_LIBDIRS} ${OFX_LIBDIRS})
 if (OF_LIBDIRS)
@@ -1187,17 +1187,17 @@ if (OF_LIBDIRS)
 
 endif ()
 
-# Libraries
+# Libraries --------------------------------------------------------------
 #
 set (OF_LIBS ${OF_CORE_LIBS} ${OFX_LIBS})
 if (OF_LIBS)
     list (REMOVE_DUPLICATES OF_LIBS)
-    if (OF_CORE_FRAMEWORKS)
-        list (REMOVE_DUPLICATES OF_CORE_FRAMEWORKS)
+    if (OF_FRAMEWORKS)
+        list (REMOVE_DUPLICATES OF_FRAMEWORKS)
     endif ()
 
     target_link_libraries(${CMAKE_PROJECT_NAME}
-                          ${OF_LIBS} ${OF_CORE_FRAMEWORKS})
+                          ${OF_LIBS} ${OF_FRAMEWORKS})
 
     # for expansion prepend '-l' if library name is not a full name already
     # i.e. contains a '.' in its filename
@@ -1211,11 +1211,11 @@ if (OF_LIBS)
     endforeach ()
 
     # create a whitespace delimited list from Cmake's list format
-    EXPAND_LIST(OF_EXPANDED_LIBS ${_OF_PREFIXED_LIBS} ${OF_CORE_FRAMEWORKS})
+    EXPAND_LIST(OF_EXPANDED_LIBS ${_OF_PREFIXED_LIBS} ${OF_FRAMEWORKS})
 
 endif ()
 
-# LDFlags
+# LDFlags ----------------------------------------------------------------
 #
 set (OF_LDFLAGS ${OF_CORE_LDFLAGS} ${OFX_LDFLAGS})
 if (OF_LDFLAGS)
@@ -1226,7 +1226,7 @@ if (OF_LDFLAGS)
 
 endif()
 
-# Pkgconf dependencies
+# Pkgconf dependencies ---------------------------------------------------
 #
 if (OF_PKGCONF_DEPENDS)
     list (REMOVE_DUPLICATES OF_PKGCONF_DEPENDS)
@@ -1236,28 +1236,12 @@ endif()
 
 
 #--------------------------------------------------------------------------
-#  Install Targets
-#--------------------------------------------------------------------------
-
-# headers
-INSTALL( FILES ${OF_ALL_HEADERS} DESTINATION ${INCLUDE_INSTALL_DIR})
-
-# library
-INSTALL( TARGETS ${CMAKE_PROJECT_NAME}
-         LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-         ARCHIVE DESTINATION ${LIB_INSTALL_DIR})
-
-# shared
-INSTALL( FILES ${OF_ALL_SHARED} DESTINATION ${SHARE_INSTALL_DIR})
-
-
-#--------------------------------------------------------------------------
 #  Build Examples (examples and their shared data will not be installed)
 #--------------------------------------------------------------------------
 if (BUILD_EXAMPLES)
-  MESSAGE("==================================================================")
-  MESSAGE(" OpenFrameworks Examples ")
-  MESSAGE("==================================================================")
+  message("==================================================================")
+  message(" OpenFrameworks Examples ")
+  message("==================================================================")
 
   add_subdirectory(examples)
 
@@ -1289,10 +1273,8 @@ endif ()
 #--------------------------------------------------------------------------
 configure_file (
     ${CMAKE_SOURCE_DIR}/ofconfig.h.in
-    ${CMAKE_BINARY_DIR}/ofconfig.h
-    )
-
-INSTALL( FILES "${CMAKE_BINARY_DIR}/ofconfig.h" DESTINATION ${INCLUDE_INSTALL_DIR} )
+    ${CMAKE_BINARY_DIR}/ofconfig.h @ONLY
+)
 
 
 #--------------------------------------------------------------------------
@@ -1303,31 +1285,77 @@ get_target_property(OF_LIB_TYPE ${CMAKE_PROJECT_NAME} TYPE)
 
 if (CMAKE_BUILD_TYPE STREQUAL "debug")
 
-    get_target_property(OF_LIB_POSTFIX ${CMAKE_PROJECT_NAME} DEBUG_POSTFIX)
+    set(OF_LIB_POSTFIX ${CMAKE_DEBUG_POSTFIX})
     get_target_property(OF_LIB_NAME ${CMAKE_PROJECT_NAME} LOCATION_DEBUG)
     get_filename_component(OF_LIB_NAME ${OF_LIB_NAME} NAME)
 
 elseif (CMAKE_BUILD_TYPE STREQUAL "release")
 
-    get_target_property(OF_LIB_POSTFIX ${CMAKE_PROJECT_NAME} RELEASE_POSTFIX)
+    set(OF_LIB_POSTFIX ${CMAKE_RELEASE_POSTFIX})
     get_target_property(OF_LIB_NAME ${CMAKE_PROJECT_NAME} LOCATION_RELEASE)
     get_filename_component(OF_LIB_NAME ${OF_LIB_NAME} NAME)
 
 endif ()
 
+configure_file(
+    ${CMAKE_SOURCE_DIR}/openframeworks.pc.in
+    ${CMAKE_BINARY_DIR}/openframeworks${OF_LIB_POSTFIX}.pc @ONLY
+)
 
-CONFIGURE_FILE("${CMAKE_SOURCE_DIR}/openframeworks.pc.in" "${CMAKE_BINARY_DIR}/openframeworks${OF_LIB_POSTFIX}.pc" @ONLY)
+#--------------------------------------------------------------------------
+#  Generate .cmake config file
+#--------------------------------------------------------------------------
 
-INSTALL( FILES "${CMAKE_BINARY_DIR}/openframeworks${OF_LIB_POSTFIX}.pc" DESTINATION ${LIB_INSTALL_DIR}/pkgconfig/ )
+configure_file (
+    ${CMAKE_SOURCE_DIR}/of-config.cmake.in
+    ${CMAKE_BINARY_DIR}/of-config.cmake @ONLY
+)
+
+
+#--------------------------------------------------------------------------
+#  Install Targets
+#--------------------------------------------------------------------------
+
+# headers
+install(FILES ${OF_ALL_HEADERS} DESTINATION ${INCLUDE_INSTALL_DIR})
+
+# library
+install(TARGETS ${CMAKE_PROJECT_NAME}
+        EXPORT OF_EXPORT
+        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+        ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
+        RUNTIME DESTINATION ${BIN_INSTALL_DIR})
+
+# shared
+install(FILES ${OF_ALL_SHARED} DESTINATION ${SHARE_INSTALL_DIR})
+
+# ofconfig.h
+install(FILES ${CMAKE_BINARY_DIR}/ofconfig.h DESTINATION ${INCLUDE_INSTALL_DIR})
+
+
+# FindOF.cmake module
+#install(FILES ${CMAKE_SOURCE_DIR}/share/FindOF.cmake
+#        DESTINATION ${CMAKE_INSTALL_PREFIX}/share/cmake-2.8/Modules)
+
+# cmake config: create and install import/export declarations
+install(EXPORT OF_EXPORT DESTINATION ${CMAKECONFIG_INSTALL_DIR}
+        FILE of-targets.cmake)
+
+install(FILES ${CMAKE_BINARY_DIR}/of-config.cmake
+        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+
+# pkgconfig
+install(FILES "${CMAKE_BINARY_DIR}/openframeworks${OF_LIB_POSTFIX}.pc"
+        DESTINATION ${LIB_INSTALL_DIR}/pkgconfig/ )
 
 
 #--------------------------------------------------------------------------
 # Output Summary
 #--------------------------------------------------------------------------
 
-MESSAGE("==================================================================")
-MESSAGE(" OpenFrameworks Build Summary ")
-MESSAGE("==================================================================")
+message("==================================================================")
+message(" OpenFrameworks Build Summary ")
+message("==================================================================")
 message("Build Type:    ${CMAKE_BUILD_TYPE}")
 message("OF version:    ${OF_VERSION}")
 message("Library:       ${OF_LIB_NAME}  (${OF_LIB_TYPE})")
