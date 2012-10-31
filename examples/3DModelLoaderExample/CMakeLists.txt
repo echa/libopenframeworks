@@ -45,5 +45,5 @@ target_link_libraries(3dml openframeworks)
 
 # additional linker flags
 if (OF_LDFLAGS)
-    set_target_properties(${target_name} PROPERTIES LINK_FLAGS ${OF_FLAGS})
+    set_target_properties(${target_name} PROPERTIES LINK_FLAGS ${OF_LDFLAGS})
 endif ()
