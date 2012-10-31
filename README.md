@@ -127,7 +127,7 @@ Running Examples from the BUILD directory
 Examples will not be installed by default. You can find them inside the build directory under bin/. To run them follow the steps below:
 
     # First download and unpack the shared data into the source directory
-    curl -O http://kidtsunami.com/code/of-share-0.7.1.tar.gz
+    curl -O http://code.kidtsunami.com/of-share-0.7.1.tar.gz
 
     # assuming you are inside the source directory call
     tar -xzf of-share-0.7.1.tar.gz
@@ -141,3 +141,18 @@ Examples will not be installed by default. You can find them inside the build di
 
     # run examples (either from the source directory or from within build/bin)
     ./build/bin/3dml
+
+Project Template using libopenframeworks
+------------------------------------------------
+
+It's easy to develop your app with libopenframeworks. Just download the project template
+
+    curl -O http://code.kidtsunami.com/of-template.tar.gz
+
+unpack and start writing your own code. To compile your project run
+
+    cd build
+    cmake -DCMAKE_PREFIX_PATH=<CONTRIB_INSTALL_PATH>/lib/cmake/of ..
+    make
+
+and that's it. All the necessary libopenframeworks build configuration is kept in a single place where you've installed the library to. CMake fetches this configuration when building your project. See the main CMakeLists.txt file inside the template archive for details.
