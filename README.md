@@ -64,10 +64,14 @@ Developing on Mac OSX requires you to install the Apple Developer SDK (which inc
 
 In addition you need to install the following packages via MacPorts or Fink or compile them manually:
 
-       git-core zlib python27 pkgconfig bzip2 glib2 cmake
-       wget unzip yasm freetype freeimage glew portaudio
-       boost cairo avahi jpeg tiff jasper libpng openexr
-       mpg123 libsndfile
+    git-core zlib python27 pkgconfig bzip2 glib2 cmake
+    wget unzip yasm freetype freeimage glew portaudio
+    boost cairo avahi jpeg tiff jasper libpng openexr
+    mpg123 libsndfile
+
+When you prefer homebrew as package manager on OSX, remember to add extend the PKG_CONFIG_PATH variable with
+
+    export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:/usr/X11/lib/pkgconfig
 
 
 3rd Party Libraries
@@ -88,7 +92,7 @@ Building libopenframeworks
 Configuration and build follows the normal CMake workflow. We suggest you opt for an *out-of-source* build to keep your source directories clean. All examples below assume you are in the repository's root path (refered to as source directory). Here's a step-by step guide:
 
     # set PKG_CONFIG_PATH so CMake finds your private 3rd-party libraries
-    export PKG_CONFIG_PATH=<CONTRIB_INSTALL_PATH>/lib/pkgconfig/
+    export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:<CONTRIB_INSTALL_PATH>/lib/pkgconfig/
 
     # create a build directory and enter it
     mkdir build
