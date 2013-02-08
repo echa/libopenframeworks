@@ -3,7 +3,9 @@ libopenframeworks
 
 **A clean port of OpenFrameworks 0071 that merges all oF modules into a single static library and uses CMake for building.**
 
-This port follows the typical Linux packaging style and allows you to install oF as library plus headers. It is meant for those of you who find the fat distribution concept of OpenFrameworks less useful. In fact, this version gives you a greater flexibility in using and extending OpenFrameworks for your projects. With this port you can either use system-wide versions of 3rd party libraries or you can bootstrap private library versions using the contained build scripts. As a side-effect your oF projects will use less space on hard disc and in your repositories.
+This port follows the typical Linux packaging style and allows you to install oF as library plus headers. It is meant for developers who find the fat distribution concept of OpenFrameworks less useful.
+
+libopenframeworks allows a greater flexibility in using and extending OpenFrameworks. You can either use system-wide versions of 3rd party libraries or you can bootstrap private library versions using the contained build scripts. Most libraries are statically linked into executables resulting in less run-time dependencies and easier portability of projects between machines. When optional libraries are missing libopenframeworks would still build with some of the modules or addons disabled. As a side-effect oF projects become smaller which is beneficial for repositories and use less disk space during development.
 
 **Main Features**
 
