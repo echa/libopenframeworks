@@ -44,7 +44,9 @@
 
 //--------------------------
 // graphics
+#ifdef HAVE_CAIRO
 #include "ofCairoRenderer.h"
+#endif
 #include "ofGraphics.h"
 #include "ofImage.h"
 #include "ofPath.h"

@@ -78,14 +78,16 @@ ofPtr<ofGLRenderer> ofGetGLRenderer(){
 	}
 }
 
-#ifndef TARGET_OPENGLES 
+#ifndef TARGET_OPENGLES
 
 //-----------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------
+#ifdef HAVE_CAIRO
 #include "ofCairoRenderer.h"
-#include "ofGLRenderer.h"
-
 static ofPtr<ofCairoRenderer> cairoScreenshot;
+#endif
+
+#include "ofGLRenderer.h"
 static ofPtr<ofBaseRenderer> storedRenderer;
 static ofPtr<ofRendererCollection> rendererCollection;
 static bool bScreenShotStarted = false;
@@ -93,16 +95,18 @@ static bool bScreenShotStarted = false;
 //-----------------------------------------------------------------------------------
 void ofBeginSaveScreenAsPDF(string filename, bool bMultipage, bool b3D, ofRectangle viewport){
 	if( bScreenShotStarted )ofEndSaveScreenAsPDF();
-	
+
 	storedRenderer = ofGetCurrentRenderer();
-	
-	cairoScreenshot = ofPtr<ofCairoRenderer>(new ofCairoRenderer);
-	cairoScreenshot->setup(filename, ofCairoRenderer::PDF, bMultipage, b3D, viewport); 		
 
 	rendererCollection = ofPtr<ofRendererCollection>(new ofRendererCollection);
 	rendererCollection->renderers.push_back(ofGetGLRenderer());
+
+#ifdef HAVE_CAIRO
+	cairoScreenshot = ofPtr<ofCairoRenderer>(new ofCairoRenderer);
+	cairoScreenshot->setup(filename, ofCairoRenderer::PDF, bMultipage, b3D, viewport);
 	rendererCollection->renderers.push_back(cairoScreenshot);
-	
+#endif
+
 	ofSetCurrentRenderer(rendererCollection);
 	bScreenShotStarted = true;
 }
@@ -111,16 +115,18 @@ void ofBeginSaveScreenAsPDF(string filename, bool bMultipage, bool b3D, ofRectan
 void ofEndSaveScreenAsPDF(){
 	if( bScreenShotStarted ){
 
+#ifdef HAVE_CAIRO
 		if( cairoScreenshot ){
 			cairoScreenshot->close();
 			rendererCollection.reset();
 			cairoScreenshot.reset();
 		}
+#endif
 		if( storedRenderer ){
 			ofSetCurrentRenderer(storedRenderer);
 			storedRenderer.reset();
 		}
-		
+
 		bScreenShotStarted = false;
 	}
 }
@@ -290,7 +296,7 @@ void ofClear(float brightness, float a){
 //----------------------------------------------------------
 void ofClearAlpha(){
 	renderer->clearAlpha();
-}	
+}
 
 //----------------------------------------------------------
 void ofSetBackgroundAuto(bool bAuto){
@@ -562,7 +568,7 @@ void ofSetStyle(ofStyle style){
 
 	//blending
 	ofEnableBlendMode(style.blendingMode);
-	
+
 	//bitmap draw mode
 	ofSetDrawBitmapMode(style.drawBitmapMode);
 }
@@ -836,7 +842,7 @@ void ofSphere(float radius){
 	// and processing's implementation of icospheres:
 	// https://code.google.com/p/processing/source/browse/trunk/processing/core/src/processing/core/PGraphics.java?r=7543
 	// public void sphere(float r)
-	
+
 	ofPushMatrix();
 	ofRotateX(90);
 	if(ofGetStyle().bFill){
@@ -874,7 +880,7 @@ void ofBox(float size){
 	}
 
 	float h = size * .5;
-	
+
 	vertexData.clear();
 	if(ofGetStyle().bFill){
 		ofVec3f vertices[] = {
@@ -886,7 +892,7 @@ void ofBox(float size){
 			ofVec3f(-h,-h,-h), ofVec3f(-h,+h,-h), ofVec3f(+h,+h,-h), ofVec3f(+h,-h,-h)
 		};
 		vertexData.addVertices(vertices,24);
-		
+
 		static ofVec3f normals[] = {
 			ofVec3f(+1,0,0), ofVec3f(+1,0,0), ofVec3f(+1,0,0), ofVec3f(+1,0,0),
 			ofVec3f(0,+1,0), ofVec3f(0,+1,0), ofVec3f(0,+1,0), ofVec3f(0,+1,0),
@@ -906,12 +912,12 @@ void ofBox(float size){
 			ofVec2f(0,0), ofVec2f(0,1), ofVec2f(1,1), ofVec2f(1,0)
 		};
 		vertexData.addTexCoords(tex,24);
-	
+
 		static ofIndexType indices[] = {
 			0,1,2, // right top left
 			0,2,3, // right bottom right
 			4,5,6, // bottom top right
-			4,6,7, // bottom bottom left	
+			4,6,7, // bottom bottom left
 			8,9,10, // back bottom right
 			8,10,11, // back top left
 			12,13,14, // left bottom right
@@ -936,7 +942,7 @@ void ofBox(float size){
 			ofVec3f(-h,-h,-h)
 		};
 		vertexData.addVertices(vertices,8);
-		
+
 		static float n = sqrtf(3);
 		static ofVec3f normals[] = {
 			ofVec3f(+n,+n,+n),

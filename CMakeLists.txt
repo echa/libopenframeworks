@@ -655,12 +655,11 @@ endif ()
 
 
 #--------------------------------------------------------------------------
-# Cairo (new in oF 0.07)
+# Cairo (new in oF 0.07) - optional
 #--------------------------------------------------------------------------
 find_package(Cairo ${CAIRO_MIN_VERSION})
 if (NOT CAIRO_FOUND)
-    message("EE Cairo NOT FOUND. Please install packages (e.g. cairo)")
-    set (OF_BROKEN_DEPENDENCY true)
+    message("WW Cairo NOT FOUND. Please install packages (e.g. cairo)")
     SET_EMPTY_DEPENDENCY(CAIRO)
 else ()
     set (OF_CORE_INCLUDES ${OF_CORE_INCLUDES} ${CAIRO_INCLUDE_DIRS})
@@ -936,6 +935,12 @@ if (HAVE_RTAUDIO)
         openframeworks/sound/ofRtAudioSoundStream.h)
 endif ()
 
+if (HAVE_CAIRO)
+    set(CAIRO_SOURCES openframeworks/graphics/ofCairoRenderer.cpp)
+    set(CAIRO_HEADERS openframeworks/graphics/ofCairoRenderer.h)
+endif ()
+
+
 # collect video related source files
 set(VIDEO_SOURCES
     openframeworks/video/ofVideoPlayer.cpp
@@ -1022,7 +1027,6 @@ set (COMMON_HEADERS
     openframeworks/gl/ofVbo.h
     openframeworks/gl/ofVboMesh.h
     openframeworks/graphics/ofBitmapFont.h
-    openframeworks/graphics/ofCairoRenderer.h
     openframeworks/graphics/ofGraphics.h
     openframeworks/graphics/ofImage.h
     openframeworks/graphics/ofPath.h
@@ -1061,7 +1065,6 @@ set (COMMON_SOURCES
     openframeworks/3d/of3dUtils.cpp
     openframeworks/3d/ofCamera.cpp
     openframeworks/3d/ofMesh.cpp
-    openframeworks/graphics/ofCairoRenderer.cpp
     openframeworks/graphics/ofTrueTypeFont.cpp
     openframeworks/graphics/ofBitmapFont.cpp
     openframeworks/graphics/ofGraphics.cpp
@@ -1108,6 +1111,7 @@ add_library (${CMAKE_PROJECT_NAME} STATIC
     ${VIDEO_SOURCES}
     ${OFX_SOURCES}
     ${DARWIN_SOURCES}
+    ${CAIRO_SOURCES}
 )
 
 set (OF_ALL_HEADERS
@@ -1116,6 +1120,7 @@ set (OF_ALL_HEADERS
     ${VIDEO_HEADERS}
     ${OFX_HEADERS}
     ${DARWIN_HEADERS}
+    ${CAIRO_HEADERS}
 )
 
 #--------------------------------------------------------------------------

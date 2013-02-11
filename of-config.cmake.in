@@ -5,14 +5,16 @@ set(OF_INCLUDES @INCLUDE_INSTALL_DIR@)
 include(@CMAKECONFIG_INSTALL_DIR@/of-targets.cmake)
 
 # set the expected library variable (import will contain all depending libs)
-set(OF_LIBRARIES openframeworks)
+set(OF_LIBRARIES openframeworks @OF_LIBS@)
 
 # OpenFrameworks build information
 set(OF_VERSION @OF_VERSION@)
 set(OF_INCLUDES ${OF_INCLUDES} @OF_CORE_INCLUDES@)
 set(OF_LIBRARY_DIRS @OF_LIBDIRS@)
 set(OF_CFLAGS @OF_CFLAGS@)
-set(OF_LDFLAGS @OF_LDFLAGS@)
+
+# including OSX frameworks!
+set(OF_LDFLAGS @OF_EXPANDED_LDFLAGS@)
 
 # Openframework Compile-Time Configuration
 set(HAVE_FMODEX @HAVE_FMODEX@)
