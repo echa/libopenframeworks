@@ -1,6 +1,10 @@
 /*
  utilities are used internally by ofxCv, and make it easier to write code that
  can work with OpenCv and openFrameworks data.
+ 
+ useful functions from this file:
+ - imitate and copy
+ - toCv and toOf
  */
 
 #pragma once
@@ -12,66 +16,6 @@ namespace ofxCv {
 	
 	using namespace cv;
 	
-	// 1 utility functions
-	// for toCv/toOf the function signature reveals the behavior:
-	// 1       Type& argument // shallow copy of the data
-	// 2 const Type& argument // deep copy of the data
-	// 3       Type  argument // deep copy of the data
-	// style 1 is used when possible (for Mat conversion). style 2 is used when
-	// dealing with a lot of data that can't/shouldn't be shallow copied. style 3
-	// is used for small objects where the compiler can optimize the copying if
-	// necessary. the reference is avoided to make inline toCv/toOf use easier.
-	
-	// toCv functions
-	Mat toCv(Mat& mat);
-	template <class T> inline Mat toCv(ofPixels_<T>& pix) {
-		return Mat(pix.getHeight(), pix.getWidth(), getCvImageType(pix), pix.getPixels(), 0);
-	}
-	template <class T> inline Mat toCv(ofImage_<T>& img) {
-		return Mat(img.getHeight(), img.getWidth(), getCvImageType(img), img.getPixels(), 0);
-	}
-	Mat toCv(ofBaseHasPixels& img);
-	Mat toCv(ofMesh& mesh);
-	Point2f toCv(ofVec2f vec);
-	Point3f toCv(ofVec3f vec);
-     //Point2f toCv(ofVec3f vec); // this seems needed because ofPoint is ofVec3f, but I cannot overload a funciton by its return type...
-	cv::Rect toCv(ofRectangle rect);
-	vector<cv::Point2f> toCv(const ofPolyline& polyline);
-	Scalar toCv(ofColor color); // might need more for other color types?
-	
-	// toOf functions
-	ofVec2f toOf(Point2f point);
-	ofVec3f toOf(Point3f point);
-	ofRectangle toOf(cv::Rect rect);
-	ofPolyline toOf(cv::RotatedRect rect);
-	template <class T> inline ofPolyline toOf(const vector<cv::Point_<T> >& contour) {
-		ofPolyline polyline;
-		polyline.resize(contour.size());
-		for(int i = 0; i < contour.size(); i++) {
-			polyline[i].x = contour[i].x;
-			polyline[i].y = contour[i].y;
-		}
-		polyline.close();
-		return polyline;
-	}
-    // to add: toOF for meshes:
-    /*
-    template <class T> inline ofMesh toOf(const vector<cv::Point_<T> >& contour) {
-		ofPolyline polyline;
-		polyline.resize(contour.size());
-		for(int i = 0; i < contour.size(); i++) {
-			polyline[i].x = contour[i].x;
-			polyline[i].y = contour[i].y;
-		}
-		polyline.close();
-		return polyline;
-	}
-     */
-	template <class T>
-	void toOf(Mat mat, ofPixels_<T>& pixels) {
-		pixels.setFromExternalPixels(mat.ptr<T>(), mat.cols, mat.rows, mat.channels());
-	}
-	
 	// these functions are for accessing Mat, ofPixels and ofImage consistently.
 	// they're very important for imitate().
 	
@@ -80,6 +24,9 @@ namespace ofxCv {
 	template <class T> inline int getHeight(T& src) {return src.getHeight();}
 	inline int getWidth(Mat& src) {return src.cols;}
 	inline int getHeight(Mat& src) {return src.rows;}
+	template <class T> inline bool getAllocated(T& src) {
+		return getWidth(src) > 0 && getHeight(src) > 0;
+	}
 	
 	// depth
 	inline int getDepth(Mat& mat) {
@@ -118,11 +65,11 @@ namespace ofxCv {
 	}
 	
 	// image type
-	inline int getCvImageType(int channels, int depth = CV_8U) {
-		return CV_MAKETYPE(depth, channels);
+	inline int getCvImageType(int channels, int cvDepth = CV_8U) {
+		return CV_MAKETYPE(cvDepth, channels);
 	}
-	inline int getCvImageType(ofImageType imageType, int depth = CV_8U) {
-		return CV_MAKETYPE(depth, getChannels(imageType));
+	inline int getCvImageType(ofImageType imageType, int cvDepth = CV_8U) {
+		return CV_MAKETYPE(cvDepth, getChannels(imageType));
 	}
 	template <class T> inline int getCvImageType(T& img) {
 		return CV_MAKETYPE(getDepth(img), getChannels(img));
@@ -134,6 +81,9 @@ namespace ofxCv {
 			case 1: default: return OF_IMAGE_GRAYSCALE;
 		}
 	}
+	inline ofImageType getOfImageType(Mat& mat) {
+		return getOfImageType(mat.type());
+	}
 	template <class T> inline ofImageType getOfImageType(T& img) {
 		switch(getChannels(img)) {
 			case 4: return OF_IMAGE_COLOR_ALPHA;
@@ -142,13 +92,14 @@ namespace ofxCv {
 		}
 	}
 	
-	// allocationg
+	// allocation
 	template <class T> inline void allocate(T& img, int width, int height, int cvType) {
 		img.allocate(width, height, getOfImageType(cvType));
 	}
 	inline void allocate(Mat& img, int width, int height, int cvType) {
 		img.create(height, width, cvType);
 	}
+	// ofVideoPlayer/Grabber can't be allocated, so we assume we don't need to do anything
 	inline void allocate(ofVideoPlayer& img, int width, int height, int cvType) {}
 	inline void allocate(ofVideoGrabber& img, int width, int height, int cvType) {}
 	
@@ -156,15 +107,13 @@ namespace ofxCv {
 	// it's like allocate(), but uses the size and type of the original as a reference
 	// like allocate(), the image being allocated is the first argument	
 	
-	// this version copies size, but manually specifies image type
-	template <class M, class O> void imitate(M& mirror, O& original, int originalCvImageType) {
-		int mw = getWidth(mirror);
-		int mh = getHeight(mirror);
-		int ow = getWidth(original);
-		int oh = getHeight(original);
+	// this version copies size, but manually specifies mirror's image type
+	template <class M, class O> void imitate(M& mirror, O& original, int mirrorCvImageType) {
+		int mw = getWidth(mirror), mh = getHeight(mirror);
+		int ow = getWidth(original), oh = getHeight(original);
 		int mt = getCvImageType(mirror);
-		if(mw != ow || mh != oh || mt != originalCvImageType) {
-			allocate(mirror, ow, oh, originalCvImageType);
+		if(mw != ow || mh != oh || mt != mirrorCvImageType) {
+			allocate(mirror, ow, oh, mirrorCvImageType);
 		}
 	}
 	
@@ -174,23 +123,84 @@ namespace ofxCv {
 	}
 	
 	// maximum possible values for that depth or matrix
-	float getMaxVal(int depth);
+	float getMaxVal(int cvDepth);
 	float getMaxVal(const Mat& mat);
 	int getTargetChannelsFromCode(int conversionCode);
+    
+	// toCv functions
+	// for conversion functions, the signature reveals the behavior:
+	// 1       Type& argument // creates a shallow copy of the data
+	// 2 const Type& argument // creates a deep copy of the data
+	// 3       Type  argument // creates a deep copy of the data
+	// style 1 is used when possible (for Mat conversion). style 2 is used when
+	// dealing with a lot of data that can't/shouldn't be shallow copied. style 3
+	// is used for small objects where the compiler can optimize the copying if
+	// necessary. the reference is avoided to make inline toCv/toOf use easier.
+	
+	Mat toCv(Mat& mat);
+	template <class T> inline Mat toCv(ofPixels_<T>& pix) {
+		return Mat(pix.getHeight(), pix.getWidth(), getCvImageType(pix), pix.getPixels(), 0);
+	}
+	template <class T> inline Mat toCv(ofBaseHasPixels_<T>& img) {
+		return toCv(img.getPixelsRef());
+	}
+	Mat toCv(ofMesh& mesh);
+	Point2f toCv(ofVec2f vec);
+	Point3f toCv(ofVec3f vec);
+	cv::Rect toCv(ofRectangle rect);
+	vector<cv::Point2f> toCv(const ofPolyline& polyline);
+	Scalar toCv(ofColor color);
 	
 	// cross-toolkit, cross-bitdepth copying
-	// should this do conversion? or should be handle conversion in convertColor?
-	// or convert that handles color or bitdepth?
 	template <class S, class D>
-	void copy(S& src, D& dst) {
-		imitate(dst, src);
-		Mat srcMat = toCv(src);
-		Mat dstMat = toCv(dst);
+	void copy(S& src, D& dst, int dstDepth) {
+		imitate(dst, src, getCvImageType(getChannels(src), dstDepth));
+		Mat srcMat = toCv(src), dstMat = toCv(dst);
 		if(srcMat.type() == dstMat.type()) {
 			srcMat.copyTo(dstMat);
 		} else {
 			double alpha = getMaxVal(dstMat) / getMaxVal(srcMat);
 			srcMat.convertTo(dstMat, dstMat.depth(), alpha);
 		}
+	}
+	
+	// most of the time you want the destination to be the same as the source. but
+	// sometimes your destination is a different depth, and copy() will notice and
+	// do the conversion for you.
+	template <class S, class D>
+	void copy(S& src, D& dst) {
+		int dstDepth;
+		if(getAllocated(dst)) {
+			dstDepth = getDepth(dst);
+		} else {
+			dstDepth = getDepth(src);
+		}
+		copy(src, dst, dstDepth);
+	}
+		
+	
+	// toOf functions
+	ofVec2f toOf(Point2f point);
+	ofVec3f toOf(Point3f point);
+	ofRectangle toOf(cv::Rect rect);
+	ofPolyline toOf(cv::RotatedRect rect);
+	template <class T> inline ofPolyline toOf(const vector<cv::Point_<T> >& contour) {
+		ofPolyline polyline;
+		polyline.resize(contour.size());
+		for(int i = 0; i < contour.size(); i++) {
+			polyline[i].x = contour[i].x;
+			polyline[i].y = contour[i].y;
+		}
+		polyline.close();
+		return polyline;
+	}
+	template <class T>
+	void toOf(Mat mat, ofPixels_<T>& pixels) {
+		pixels.setFromExternalPixels(mat.ptr<T>(), mat.cols, mat.rows, mat.channels());
+	}
+	template <class T>
+	void toOf(Mat mat, ofImage_<T>& img) {
+		imitate(img, mat);
+		toOf(mat, img.getPixelsRef());
 	}
 }

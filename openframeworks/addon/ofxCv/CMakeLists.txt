@@ -65,7 +65,7 @@ set (OFX_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Calibration.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/ContourFinder.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Distance.cpp
-#    ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Flow.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Flow.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Helpers.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/RunningBackground.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Tracker.cpp
@@ -85,6 +85,7 @@ set (OFX_CV_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Calibration.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/ContourFinder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Distance.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Flow.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Helpers.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/RunningBackground.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Tracker.h
@@ -96,6 +97,7 @@ set (OFX_CV_HEADERS
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Calibration.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/ContourFinder.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Distance.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Flow.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Helpers.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/RunningBackground.h
     ${CMAKE_CURRENT_SOURCE_DIR}/ofxCv/Tracker.h

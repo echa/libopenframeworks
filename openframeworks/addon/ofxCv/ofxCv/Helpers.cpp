@@ -2,26 +2,8 @@
 #include "ofxCv/Utilities.h"
 
 namespace ofxCv {
-
+	
 	using namespace cv;
-	
-	void loadImage(Mat& mat, string filename) {
-		mat = imread(ofToDataPath(filename));
-	}
-	
-	void saveImage(Mat mat, string filename) {
-		imwrite(ofToDataPath(filename), mat);
-	}
-	
-	void loadMat(Mat& mat, string filename) {
-		FileStorage fs(ofToDataPath(filename), FileStorage::READ);
-		fs["Mat"] >> mat;
-	}
-	
-	void saveMat(Mat mat, string filename) {
-		FileStorage fs(ofToDataPath(filename), FileStorage::WRITE);
-		fs << "Mat" << mat;
-	}
 	
 	ofMatrix4x4 makeMatrix(Mat rotation, Mat translation) {
 		Mat rot3x3;
@@ -33,9 +15,9 @@ namespace ofxCv {
 		double* rm = rot3x3.ptr<double>(0);
 		double* tm = translation.ptr<double>(0);
 		return ofMatrix4x4(rm[0], rm[3], rm[6], 0.0f,
-                           rm[1], rm[4], rm[7], 0.0f,
-                           rm[2], rm[5], rm[8], 0.0f,
-                           tm[0], tm[1], tm[2], 1.0f);
+											 rm[1], rm[4], rm[7], 0.0f,
+											 rm[2], rm[5], rm[8], 0.0f,
+											 tm[0], tm[1], tm[2], 1.0f);
 	}
 	
 	void drawMat(Mat& mat, float x, float y) {
@@ -46,7 +28,7 @@ namespace ofxCv {
 		int glType;
 		Mat buffer;
 		if(mat.depth() != CV_8U) {
-			mat.convertTo(buffer, CV_8U);
+			copy(mat, buffer, CV_8U);
 		} else {
 			buffer = mat;
 		}
@@ -62,47 +44,9 @@ namespace ofxCv {
 		tex.loadData(buffer.ptr(), w, h, glType);
 		tex.draw(x, y, width, height);
 	}
-    
-    // added:
-    void showMatData(Mat& mat) {
-        if ((mat.rows<15)&&(mat.cols<15)) { // otherwise too large...
-            cout << endl;
-            for (int i=0; i<mat.rows; i++) {
-                for (int j=0; j<mat.cols; j++) {
-                    cout<< mat.at<float>(i,j) << " ";
-                }
-                cout << endl;
-            }
-        }
-        
-    }
 	
 	void applyMatrix(const ofMatrix4x4& matrix) {
 		glMultMatrixf((GLfloat*) matrix.getPtr());
-	}
-	
-	ofVec2f findMaxLocation(Mat& mat) {
-		double minVal, maxVal;
-		cv::Point minLoc, maxLoc;
-		minMaxLoc(mat, &minVal, &maxVal, &minLoc, &maxLoc);
-		return ofVec2f(maxLoc.x, maxLoc.y);
-	}
-	
-	void getBoundingBox(ofImage& img, ofRectangle& box, int thresh, bool invert) {
-		Mat mat = toCv(img);
-		int flags = (invert ? THRESH_BINARY_INV : THRESH_BINARY);
-		
-		Mat rowMat = meanRows(mat);
-		threshold(rowMat, rowMat, thresh, 255, flags);
-		box.y = findFirst(rowMat, 255);
-		box.height = findLast(rowMat, 255);
-		box.height -= box.y;
-		
-		Mat colMat = meanCols(mat);
-		threshold(colMat, colMat, thresh, 255, flags);
-		box.x = findFirst(colMat, 255);
-		box.width = findLast(colMat, 255);
-		box.width -= box.x;
 	}
 	
 	int forceOdd(int x) {
@@ -127,76 +71,21 @@ namespace ofxCv {
 		return 0;
 	}
 	
-	Mat meanCols(const Mat& mat) {
-		Mat colMat(mat.cols, 1, mat.type());
-		for(int i = 0; i < mat.cols; i++) {
-			colMat.row(i) = mean(mat.col(i));
-		}	
-		return colMat;
-	}
-	
-	Mat meanRows(const Mat& mat) {
-		Mat rowMat(mat.rows, 1, mat.type());
-		for(int i = 0; i < mat.rows; i++) {
-			rowMat.row(i) = mean(mat.row(i));
+	float weightedAverageAngle(const vector<Vec4i>& lines) {
+		float angleSum = 0;
+		ofVec2f start, end;
+		float weights = 0;
+		for(int i = 0; i < lines.size(); i++) {
+			start.set(lines[i][0], lines[i][1]);
+			end.set(lines[i][2], lines[i][3]);
+			ofVec2f diff = end - start;
+			float length = diff.length();
+			float weight = length * length;
+			float angle = atan2f(diff.y, diff.x);
+			angleSum += angle * weight;
+			weights += weight;
 		}
-		return rowMat;
-	}
-	
-	Mat sumCols(const Mat& mat) {
-		Mat colMat(mat.cols, 1, CV_32FC1);
-		for(int i = 0; i < mat.cols; i++) {
-			colMat.row(i) = sum(mat.col(i));
-		}	
-		return colMat;
-	}
-	
-	Mat sumRows(const Mat& mat) {
-		Mat rowMat(mat.rows, 1, CV_32FC1);
-		for(int i = 0; i < mat.rows; i++) {
-			rowMat.row(i) = sum(mat.row(i));
-		}
-		return rowMat;
-	}
-	
-	Mat minCols(const Mat& mat) {
-		Mat colMat(mat.cols, 1, CV_32FC1);
-		double minVal, maxVal;
-		for(int i = 0; i < mat.cols; i++) {
-			minMaxLoc(mat.col(i), &minVal, &maxVal); 
-			colMat.row(i) = minVal;
-		}	
-		return colMat;
-	}
-	
-	Mat minRows(const Mat& mat) {
-		Mat rowMat(mat.rows, 1, CV_32FC1);
-		double minVal, maxVal;
-		for(int i = 0; i < mat.rows; i++) {
-			minMaxLoc(mat.row(i), &minVal, &maxVal); 
-			rowMat.row(i) = minVal;
-		}
-		return rowMat;
-	}
-	
-	Mat maxCols(const Mat& mat) {
-		Mat colMat(mat.cols, 1, CV_32FC1);
-		double minVal, maxVal;
-		for(int i = 0; i < mat.cols; i++) {
-			minMaxLoc(mat.col(i), &minVal, &maxVal); 
-			colMat.row(i) = maxVal;
-		}	
-		return colMat;
-	}
-	
-	Mat maxRows(const Mat& mat) {
-		Mat rowMat(mat.rows, 1, CV_32FC1);
-		double minVal, maxVal;
-		for(int i = 0; i < mat.rows; i++) {
-			minMaxLoc(mat.row(i), &minVal, &maxVal); 
-			rowMat.row(i) = maxVal;
-		}
-		return rowMat;
+		return angleSum / weights;
 	}
 	
 	void drawHighlightString(string text, ofPoint position, ofColor background, ofColor foreground) {
@@ -224,7 +113,11 @@ namespace ofxCv {
 		float leading = 1.7;
 		int height = lines.size() * fontSize * leading - 1;
 		int width = textLength * fontSize;
-	
+		
+#ifdef TARGET_OPENGLES
+		// This needs to be refactored to support OpenGLES
+		// Else it will work correctly
+#else
 		glPushAttrib(GL_DEPTH_BUFFER_BIT);
 		glDisable(GL_DEPTH_TEST);
 		ofPushStyle();
@@ -239,6 +132,7 @@ namespace ofxCv {
 		ofPopMatrix();
 		ofPopStyle();
 		glPopAttrib();
+#endif         
+         
 	}
-
 }

@@ -2,16 +2,17 @@
 
 #include "ofMath.h"
 
+// vs2010 support (this should be added to the OF core)
+#if (_MSC_VER)
+#include <stdint.h>
+#endif
+
 namespace ofxCv {
 	
 	using namespace cv;
 	
 	Mat toCv(Mat& mat) {
 		return mat;
-	}
-	
-	Mat toCv(ofBaseHasPixels& img) {
-		return toCv(img.getPixelsRef());
 	}
 	
 	Point2f toCv(ofVec2f vec) {
@@ -63,8 +64,8 @@ namespace ofxCv {
 		return polyline;
 	}
 	
-	float getMaxVal(int depth) {
-		switch(depth) {
+	float getMaxVal(int cvDepth) {
+		switch(cvDepth) {
 			case CV_8U: return numeric_limits<uint8_t>::max();
 			case CV_16U: return numeric_limits<uint16_t>::max();
 				
@@ -73,7 +74,7 @@ namespace ofxCv {
 			case CV_32S: return numeric_limits<int32_t>::max();
 				
 			case CV_32F: return 1;
-			case CV_64F: return 1;
+			case CV_64F: default: return 1;
 		}
 	}
 	

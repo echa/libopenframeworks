@@ -4,94 +4,31 @@
 namespace ofxCv {
 	
 	using namespace cv;
-    
-    // *** added for sorting by area:
-    bool sort_contours_by_area(vector<cv::Point> contourA, vector<cv::Point> contourB) {
-        // use opencv to calc size, then sort based on size
-        // type of parameters: vector<cv::Point> contourA, countourB;
-        double areaa = contourArea(Mat(contourA)); //fabs(cvContourArea(a, CV_WHOLE_SEQ));
-        double areab = contourArea(Mat(contourB)); //fabs(cvContourArea(b, CV_WHOLE_SEQ));
-        return (areaa > areab);
-    }
-    
 	
 	ContourFinder::ContourFinder()
 	:autoThreshold(true)
-	,thresholdValue(5)// differential color threshold in case of trackcolor or floodfill
+	,thresholdValue(128.)
 	,invert(false)
 	,simplify(true)
-	,useTargetColor(false)
-    ,useSeedFloodFill(false) // for some reason, it DOES NOT GET THIS DEFAULT VALUE!!!
-    ,autoUpdateSeed(false) {
+	,useTargetColor(false) {
 		resetMinArea();
 		resetMaxArea();
-        setSeedPosition(ofVec2f(0,0)); // takes values as ofVec2f (or ofPoint)
 	}
 	
 	void ContourFinder::findContours(Mat img) {
-        
-  
-        // *** FLOOD FILL BASED on seed point (note: this may be redundant with the color threshold... but well)
-        // This will MODIFY the "thresh" image (I could not fill on a separate mask, there seems to be a problem with the floodFill parameters...)
-        if (useSeedFloodFill) { // note: this mode overrides useTargetColor mode (bad, should find a better way to charaterize the contour detection modes).
-            Scalar offset(thresholdValue, thresholdValue, thresholdValue);
-            
-            // Define the fill color in the original image (not the mask):
-            // Scalar colorfill = toCv(ofColor(255, 255, 255));
-            Scalar colorfill =CV_RGB(255,255,255); //note: it would be complicated to use ofColor, it is not the same type. 
-            
-            // (the function cvFloodFill has not been wrapped in OF)
-            
-            // Now, do a flood fill with seed point, but filling the MASK and/or the color source image:
-            // int newcolormask=255;
-            int connectivity=8; //4 or 8
-            int flags= connectivity;// + CV_FLOODFILL_FIXED_RANGE;//+ CV_FLOODFILL_MASK_ONLY ;
-            cv::Rect rect;
-            
-            //cv::Mat label_image;
-            //colorImage.convertTo(colorImage, CV_32FC1); // weird it doesn't support CV_32S!
-            
-            Mat colorImage=img.clone(); // because attention: floodFill will modify the image...
-            //cvtColor(colorImage, colorImage, CV_RGB2HSV);
-            int blurQuantity=3; // note: if the number is EVEN, it crashes??
-            GaussianBlur(img, colorImage, cv::Size( blurQuantity, blurQuantity ), 0, 0);
-            
-            // cv::floodFill(colorImage, grayMask , seedPoint, colorfill, &rect, cv::Scalar(intensityDiff), cv::Scalar(intensityDiff),flags);
-            cv::floodFill(colorImage , seedFloodPoint, colorfill, &rect, offset, offset,flags);
-            
-            //cv::imshow("flood color", colorImage);
-            
-            // NOTE: the resulting image "thresh" has to be a "binary image"
-            if(colorImage.channels() == 1) {
-				thresh = colorImage.clone();
-			} else if(colorImage.channels() == 3) {
-				cvtColor(colorImage, thresh, CV_RGB2GRAY);
-			} else if(colorImage.channels() == 4) {
-				cvtColor(colorImage, thresh, CV_RGBA2GRAY);
-			}
-            cv::threshold(thresh, thresh, 254, 255, THRESH_BINARY);
-            cv::dilate(thresh,thresh,Mat(), cv::Point(-1,-1), 3);
-            cv::erode(thresh,thresh,Mat(), cv::Point(-1,-1), 1);
-            
-            // for tests:
-             cv::imshow("flood", thresh);
-        }        
-		else {
-            // threshold the image using a tracked color or just binary grayscale
-            if(useTargetColor) {
+		// threshold the image using a tracked color or just binary grayscale
+		if(useTargetColor) {
 			Scalar offset(thresholdValue, thresholdValue, thresholdValue);
 			Scalar base = toCv(targetColor);
 			if(trackingColorMode == TRACK_COLOR_RGB) {
-                
-				inRange(img, base - offset, base + offset, thresh); 
-                // this gives an CV_8U type image, with values between 0 or 255.
+				inRange(img, base - offset, base + offset, thresh);
 			} else {
-				if(TRACK_COLOR_H) { //????
+				if(TRACK_COLOR_H) {
 					offset[1] = 255;
 					offset[2] = 255;
 				}
 				if(TRACK_COLOR_HS) {
-					offset[2] = 255;//????
+					offset[2] = 255;
 				}
 				cvtColor(img, hsvBuffer, CV_RGB2HSV);
 				base = toCv(convertColor(targetColor, CV_RGB2HSV));
@@ -99,8 +36,7 @@ namespace ofxCv {
 				Scalar upperb = base + offset;
 				inRange(hsvBuffer, lowerb, upperb, thresh);
 			}
-            }
-        else {
+		} else {
 			if(img.channels() == 1) {
 				thresh = img.clone();
 			} else if(img.channels() == 3) {
@@ -108,23 +44,17 @@ namespace ofxCv {
 			} else if(img.channels() == 4) {
 				cvtColor(img, thresh, CV_RGBA2GRAY);
 			}
-        }
-       }
-            
-       // cv::imshow("after thresh", thresh);
-        
-        //We need a BINARY image to do findCountours or floofill?
-        if(autoThreshold) {
-            threshold(thresh, thresholdValue, invert);
-        }
-        
-               
+		}
+		if(autoThreshold) {
+			threshold(thresh, thresholdValue, invert);
+		}
+		
 		// run the contour finder
 		vector<vector<cv::Point> > allContours;
 		int simplifyMode = simplify ? CV_CHAIN_APPROX_SIMPLE : CV_CHAIN_APPROX_NONE;
 		cv::findContours(thresh, allContours, CV_RETR_EXTERNAL, simplifyMode);
-        
-		// filter the contours (if needed)
+		
+		// filter the contours
 		bool needMinFilter = (minArea > 0);
 		bool needMaxFilter = maxAreaNorm ? (maxArea < 1) : (maxArea < numeric_limits<float>::infinity());
 		if(needMinFilter || needMaxFilter) {
@@ -142,18 +72,7 @@ namespace ofxCv {
 		} else {
 			contours = allContours;
 		}
-        
-        // ** ARRANGE the remaining contours by SIZE (or other property!)
-        if( contours.size() > 1 ) {
-            std::sort( contours.begin(), contours.end(), sort_contours_by_area );
-        }
-
-        // Update SEED POINT for floodFill (only on the largest contour) - idea: in the future, have this for all contours, 
-        // and apply a TRACKER to the centroids - even a kalman filter. 
-        if ((autoUpdateSeed)&&(contours.size() > 0)) {
-            seedFloodPoint=getCentroid(0); 
-        }
-        
+		
 		// generate polylines from the contours
 		polylines.clear();
 		for(int i = 0; i < size(); i++) {
@@ -161,23 +80,25 @@ namespace ofxCv {
 		}
 		
 		// generate bounding boxes from the contours
-		boundingBoxes.clear();
+		boundingRects.clear();
 		for(int i = 0; i < size(); i++) {
-			boundingBoxes.push_back(boundingRect(Mat(contours[i])));
+			boundingRects.push_back(boundingRect(Mat(contours[i])));
 		}
 		
 		// track bounding boxes
-		tracker.track(boundingBoxes);
+		tracker.track(boundingRects);
 	}
 	
-    //--------------------------------------------------------------------------------
-    
-	vector<vector<cv::Point> >& ContourFinder::getContours() {
+	const vector<vector<cv::Point> >& ContourFinder::getContours() const {
 		return contours;
 	}
 	
-	vector<ofPolyline>& ContourFinder::getPolylines() {
+	const vector<ofPolyline>& ContourFinder::getPolylines() const {
 		return polylines;
+	}
+	
+	const vector<cv::Rect>& ContourFinder::getBoundingRects() const {
+		return boundingRects;
 	}
 	
 	unsigned int ContourFinder::size() const {
@@ -193,7 +114,7 @@ namespace ofxCv {
 	}
 	
 	cv::Rect ContourFinder::getBoundingRect(unsigned int i) const {
-		return boundingBoxes[i];
+		return boundingRects[i];
 	}
 	
 	cv::Point2f ContourFinder::getCenter(unsigned int i) const {
@@ -247,15 +168,15 @@ namespace ofxCv {
 		vector<cv::Point> convexHull = getConvexHull(i);		
 		vector<cv::Point> quad = convexHull;
 		
-		static const unsigned int targetPoints = 4; // this can be a parameter for a generalized polygon search...
+		static const unsigned int targetPoints = 4;
 		static const unsigned int maxIterations = 16;
 		static const double infinity = numeric_limits<double>::infinity();
 		double minEpsilon = 0;
 		double maxEpsilon = infinity;
 		double curEpsilon = 16; // good initial guess
 		
-		// unbounded binary search to simplify the convex hull until it's exactly targetPoints points
-		if(convexHull.size() > targetPoints) { // otherwise don't do anything... ?
+		// unbounded binary search to simplify the convex hull until it's 4 points
+		if(quad.size() > 4) {
 			for(int i = 0; i < maxIterations; i++) {
 				approxPolyDP(Mat(convexHull), quad, curEpsilon, true);
 				if(quad.size() == targetPoints) {
@@ -282,8 +203,8 @@ namespace ofxCv {
 	cv::Vec2f ContourFinder::getVelocity(unsigned int i) const {
 		unsigned int label = tracker.getLabelFromIndex(i);
 		if(tracker.existsPrevious(label)) {
-			cv::Rect& previous = tracker.getPrevious(label);
-			cv::Rect& current = tracker.getCurrent(label);
+			const cv::Rect& previous = tracker.getPrevious(label);
+			const cv::Rect& current = tracker.getCurrent(label);
 			cv::Vec2f previousPosition(previous.x + previous.width / 2, previous.y + previous.height / 2);
 			cv::Vec2f currentPosition(current.x + current.width / 2, current.y + current.height / 2);
 			return currentPosition - previousPosition;
@@ -312,29 +233,12 @@ namespace ofxCv {
 		this->invert = invert;
 	}
 	
-    // added: NOTE: problem with default initialization? also, needed beause of new floodFill mode:
-    void ContourFinder::setUseTargetColor(bool useTargetColor) {
-        this->useTargetColor = useTargetColor;
-    }
-    
 	void ContourFinder::setTargetColor(ofColor targetColor, TrackingColorMode trackingColorMode) {
-		//useTargetColor = true;
+		useTargetColor = true;
 		this->targetColor = targetColor;
 		this->trackingColorMode = trackingColorMode;
 	}
 	
-    void ContourFinder::setFloodFillMode(bool useSeedFloodFill) {
-        this->useSeedFloodFill=useSeedFloodFill;
-    }
-    void ContourFinder::setAutoUpdateSeed(bool autoUpdateSeed){
-        this->autoUpdateSeed=autoUpdateSeed;
-    }
-    
-    void ContourFinder::setSeedPosition(ofVec2f seedFloodPoint) {// use ofVec2f so we can pass ofPoint, as well as CENTROID (float values).  
-        //useSeedFloodFill=true;
-        this->seedFloodPoint=toCv(seedFloodPoint); // toCv means here conversion to Point (alias for Point2i)
-    }
-    
 	void ContourFinder::setSimplify(bool simplify) {
 		this->simplify = simplify;
 	}
@@ -344,22 +248,11 @@ namespace ofxCv {
 		ofNoFill();
 		for(int i = 0; i < polylines.size(); i++) {
 			polylines[i].draw();
-			ofRect(toOf(getBoundingRect(i))); // this should be optional
+			ofRect(toOf(getBoundingRect(i)));
 		}
 		ofPopStyle();
 	}
 	
-    // ** added
-    void ContourFinder::draw(int contournumber) {
-        if (contournumber<polylines.size()) {
-		ofPushStyle();
-		ofNoFill();
-        polylines[contournumber].draw();
-        //ofRect(toOf(getBoundingRect(contournumber)));
-		ofPopStyle();
-        }
-	}
-    
 	void ContourFinder::resetMinArea() {
 		setMinArea(0);
 	}

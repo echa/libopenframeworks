@@ -2,7 +2,7 @@
  the tracker is used for tracking the identities of a collection of objects that
  change slightly over time. example applications are in contour tracking and
  face tracking. when using a tracker, the two most important things to know are
- the maximumAge and maximumDistance. maximumAge determines how many frames an
+ the persistence and maximumDistance. persistence determines how many frames an
  object can last without being seen until the tracker forgets about it.
  maximumDistance determines how far an object can move until the tracker
  considers it a new object.
@@ -25,6 +25,21 @@
  (like a line of points 5 pixels apart moving up and to the right 5 pixels). it
  also fails to model the data, so two objects might be swapped if they cross
  paths quickly.
+ 
+ usually you don't just want to know the labels of tracked objects, but you also
+ want to maintain a collection of your own objects that are paired with those
+ tracked/labeled objects. use the TrackerFollower extension for this: create
+ your own MyFollower extending Follower, and create TrackerFollower<MyFollower>.
+
+ for example:
+  class MyFollower : public ofxCv::PointFollower { ... }
+	ofxCv::PointTrackerFollower<MyFollower> tracker;
+	
+ then whenever you call tracker.track(), the tracker will maintain a list of
+ MyFollower objects internally: when a new label is created, it will call
+ MyFollower::setup(), when an old label is updated MyFollower::update(),
+ then when a label has been lost it will switch to MyFollower::kill(). when
+ MyFollower::getDead() is true, the MyFollower object will be removed. 
  */
 
 #pragma once
@@ -37,36 +52,48 @@ namespace ofxCv {
 	
 	using namespace cv;
 	
+	float trackingDistance(const cv::Rect& a, const cv::Rect& b);
+	float trackingDistance(const cv::Point2f& a, const cv::Point2f& b);
+	
 	template <class T>
 	class TrackedObject {
 	protected:
-		unsigned int age, label;
+		unsigned int lastSeen, label, age;
 		int index;
 	public:
 		T object;
 		
 		TrackedObject(const T& object, unsigned int label, int index)
 		:object(object)
+		,lastSeen(0)
+		,age(0)
 		,label(label)
-		,index(index)
-		,age(0) {
+		,index(index) {
 		}
 		TrackedObject(const T& object, const TrackedObject<T>& previous, int index)
 		:object(object)
 		,label(previous.label)
 		,index(index)
-		,age(0) {
+		,lastSeen(0)
+		,age(previous.age) {
 		}
 		TrackedObject(const TrackedObject<T>& old)
 		:object(old.object)
 		,label(old.label)
 		,index(-1)
+		,lastSeen(old.lastSeen)
 		,age(old.age) {
 		}
-		void timeStep() {
+		void timeStep(bool visible) {
 			age++;
+			if(!visible) {
+				lastSeen++;
+			}
 		}
-		unsigned int getAge() const {
+		unsigned int getLastSeen() const {
+			return lastSeen;
+		}
+		unsigned long getAge() const {
 			return age;
 		}
 		unsigned int getLabel() const {
@@ -89,11 +116,10 @@ namespace ofxCv {
 	protected:		
 		vector<TrackedObject<T> > previous, current;
 		vector<unsigned int> currentLabels, previousLabels, newLabels, deadLabels;
-		std::map<unsigned int, T*> previousLabelMap, currentLabelMap;
+		std::map<unsigned int, TrackedObject<T>*> previousLabelMap, currentLabelMap;
 		
 		float maximumDistance;
-		unsigned int maximumAge;
-		unsigned int curLabel;
+		unsigned int persistence, curLabel;
 		unsigned int getNewLabel() {
 			return curLabel++;
 		}
@@ -101,31 +127,32 @@ namespace ofxCv {
 	public:
 		Tracker<T>()
 		:curLabel(0)
-		,maximumAge(4)
+		,persistence(15)
 		,maximumDistance(64) {
 		}
-		void setMaximumAge(unsigned int maximumAge);
+		void setPersistence(unsigned int persistence);
 		void setMaximumDistance(float maximumDistance);
-		vector<unsigned int>& track(const vector<T>& objects);
+		virtual vector<unsigned int>& track(const vector<T>& objects);
 		
 		// organized in the order received by track()
-		vector<unsigned int>& getCurrentLabels();
-		vector<unsigned int>& getPreviousLabels();
-		vector<unsigned int>& getNewLabels();
-		vector<unsigned int>& getDeadLabels();
+		const vector<unsigned int>& getCurrentLabels() const;
+		const vector<unsigned int>& getPreviousLabels() const;
+		const vector<unsigned int>& getNewLabels() const;
+		const vector<unsigned int>& getDeadLabels() const;
 		unsigned int getLabelFromIndex(unsigned int i) const;
 		
 		// organized by label
 		int getIndexFromLabel(unsigned int label) const;
-		T& getPrevious(unsigned int label) const;
-		T& getCurrent(unsigned int label) const;
+		const T& getPrevious(unsigned int label) const;
+		const T& getCurrent(unsigned int label) const;
 		bool existsCurrent(unsigned int label) const;
 		bool existsPrevious(unsigned int label) const;
+		int getAge(unsigned int label) const;
 	};
 	
 	template <class T>
-	void Tracker<T>::setMaximumAge(unsigned int maximumAge) {
-		this->maximumAge = maximumAge;
+	void Tracker<T>::setPersistence(unsigned int persistence) {
+		this->persistence = persistence;
 	}
 	
 	template <class T>
@@ -166,35 +193,38 @@ namespace ofxCv {
 			MatchPair& match = all[k].first;
 			int i = match.first;
 			int j = match.second;
-			// only use match if both objects are unmatched, age is reset to 0
+			// only use match if both objects are unmatched, lastSeen is set to 0
 			if(!matchedObjects[i] && !matchedPrevious[j]) {
 				matchedObjects[i] = true;
 				matchedPrevious[j] = true;
 				int index = current.size();
 				current.push_back(TrackedObject<T>(objects[i], previous[j], index));
+				current.back().timeStep(true);
 				currentLabels[i] = current.back().getLabel();
 			}
 		}
 		
-		// create new labels for new unmatched objects, age is set to 0
+		// create new labels for new unmatched objects, lastSeen is set to 0
 		newLabels.clear();
 		for(int i = 0; i < n; i++) {
 			if(!matchedObjects[i]) {
 				int curLabel = getNewLabel();
 				int index = current.size();
 				current.push_back(TrackedObject<T>(objects[i], curLabel, index));
+				current.back().timeStep(true);
 				currentLabels[i] = curLabel;
 				newLabels.push_back(curLabel);
 			}
 		}
 		
-		// copy old unmatched objects if young enough, age is increased
+		// copy old unmatched objects if young enough, lastSeen is increased
 		deadLabels.clear();
 		for(int j = 0; j < m; j++) {
-			if(!matchedPrevious[j] && previous[j].getAge() < maximumAge) {
-				current.push_back(previous[j]);
-				current.back().timeStep();
-			} else {
+			if(!matchedPrevious[j]) {
+				if(previous[j].getLastSeen() < persistence) {
+					current.push_back(previous[j]);
+					current.back().timeStep(false);
+				}
 				deadLabels.push_back(previous[j].getLabel());
 			}
 		}
@@ -203,34 +233,34 @@ namespace ofxCv {
 		currentLabelMap.clear();
 		for(int i = 0; i < current.size(); i++) {
 			unsigned int label = current[i].getLabel();
-			currentLabelMap[label] = &(current[i].object);
+			currentLabelMap[label] = &(current[i]);
 		}
 		previousLabelMap.clear();
 		for(int i = 0; i < previous.size(); i++) {
 			unsigned int label = previous[i].getLabel();
-			previousLabelMap[label] = &(previous[i].object);
+			previousLabelMap[label] = &(previous[i]);
 		}
 		
 		return currentLabels;
 	}
 	
 	template <class T>
-	vector<unsigned int>& Tracker<T>::getCurrentLabels() {
+	const vector<unsigned int>& Tracker<T>::getCurrentLabels() const {
 		return currentLabels;
 	}
 	
 	template <class T>
-	vector<unsigned int>& Tracker<T>::getPreviousLabels() {
+	const vector<unsigned int>& Tracker<T>::getPreviousLabels() const {
 		return previousLabels;
 	}
 	
 	template <class T>
-	vector<unsigned int>& Tracker<T>::getNewLabels() {
+	const vector<unsigned int>& Tracker<T>::getNewLabels() const {
 		return newLabels;
 	}
 	
 	template <class T>
-	vector<unsigned int>& Tracker<T>::getDeadLabels() {
+	const vector<unsigned int>& Tracker<T>::getDeadLabels() const {
 		return deadLabels;
 	}
 
@@ -245,13 +275,13 @@ namespace ofxCv {
 	}
 	
 	template <class T>
-	T& Tracker<T>::getPrevious(unsigned int label) const {
-		return *(previousLabelMap.find(label)->second);
+	const T& Tracker<T>::getPrevious(unsigned int label) const {
+		return previousLabelMap.find(label)->second->object;
 	}
 	
 	template <class T>
-	T& Tracker<T>::getCurrent(unsigned int label) const {
-		return *(currentLabelMap.find(label)->second);
+	const T& Tracker<T>::getCurrent(unsigned int label) const {
+		return currentLabelMap.find(label)->second->object;
 	}
 	
 	template <class T>
@@ -263,10 +293,84 @@ namespace ofxCv {
 	bool Tracker<T>::existsPrevious(unsigned int label) const {
 		return previousLabelMap.count(label) > 0;
 	}
-	
-	float trackingDistance(const cv::Rect& a, const cv::Rect& b);
-	float trackingDistance(const cv::Point2f& a, const cv::Point2f& b);
+
+	template <class T>
+	int Tracker<T>::getAge(unsigned int label) const{
+		return currentLabelMap.find(label)->second->getAge();
+	}
 	
 	typedef Tracker<cv::Rect> RectTracker;
 	typedef Tracker<cv::Point2f> PointTracker;
+	
+	template <class T>
+	class Follower {
+	protected:
+		bool dead;
+		unsigned int label;
+	public:
+		Follower()
+		:dead(false)
+		,label(0) {}
+		
+		virtual void setup(const T& track) {}
+		virtual void update(const T& track) {}
+		virtual void kill() {
+			dead = true;
+		}
+		
+		void setLabel(unsigned int label) {
+			this->label = label;
+		}
+		unsigned int getLabel() const {
+			return label;
+		}
+		bool getDead() const {
+			return dead;
+		}
+	};
+	
+	typedef Follower<cv::Rect> RectFollower;
+	typedef Follower<cv::Point2f> PointFollower;
+	
+	template <class T, class F>
+	class TrackerFollower : public Tracker<T> {
+	protected:
+		vector<unsigned int> labels;
+		vector<F> followers;
+	public:
+		vector<unsigned int>& track(const vector<T>& objects) {
+			Tracker<T>::track(objects);
+			// kill missing, update old
+			for(int i = 0; i < labels.size(); i++) {
+				unsigned int curLabel = labels[i];
+				F& curFollower = followers[i];
+				if(!Tracker<T>::existsCurrent(curLabel)) {
+					curFollower.kill();
+				} else {
+					curFollower.update(Tracker<T>::getCurrent(curLabel));
+				}
+			}
+			// add new
+			for(int i = 0; i < Tracker<T>::newLabels.size(); i++) {
+				unsigned int curLabel = Tracker<T>::newLabels[i];
+				labels.push_back(curLabel);
+				followers.push_back(F());
+				followers.back().setup(Tracker<T>::getCurrent(curLabel));
+				followers.back().setLabel(curLabel);
+			}
+			// remove dead
+			for(int i = labels.size() - 1; i >= 0; i--) {
+				if(followers[i].getDead()) {
+					followers.erase(followers.begin() + i);
+					labels.erase(labels.begin() + i);
+				}
+			}
+		}
+		vector<F>& getFollowers() {
+			return followers;
+		}
+	};
+	
+	template <class F> class RectTrackerFollower : public TrackerFollower<cv::Rect, F> {};
+	template <class F> class PointTrackerFollower : public TrackerFollower<cv::Point2f, F> {};
 }

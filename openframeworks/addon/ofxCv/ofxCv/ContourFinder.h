@@ -34,7 +34,7 @@
 namespace ofxCv {
 	
 	enum TrackingColorMode {TRACK_COLOR_RGB, TRACK_COLOR_HSV, TRACK_COLOR_H, TRACK_COLOR_HS};
-    
+	
 	class ContourFinder {
 	public:
 		ContourFinder();
@@ -44,8 +44,9 @@ namespace ofxCv {
 			findContours(toCv(img));
 		}
 		void findContours(cv::Mat img);
-		vector<vector<cv::Point> >& getContours();
-		vector<ofPolyline>& getPolylines();
+		const vector<vector<cv::Point> >& getContours() const;
+		const vector<ofPolyline>& getPolylines() const;
+		const vector<cv::Rect>& getBoundingRects() const;
 		
 		unsigned int size() const;
 		vector<cv::Point>& getContour(unsigned int i);
@@ -71,13 +72,8 @@ namespace ofxCv {
 		void setThreshold(float thresholdValue);
 		void setAutoThreshold(bool autoThreshold);
 		void setInvert(bool invert);
-        void setUseTargetColor(bool useTargetColor);
 		void setTargetColor(ofColor targetColor, TrackingColorMode trackingColorMode = TRACK_COLOR_RGB);
 		
-        void setFloodFillMode(bool );
-        void setAutoUpdateSeed(bool );
-        void setSeedPosition(ofVec2f seedPoint);
-        
 		void resetMinArea();
 		void resetMaxArea();
 		void setMinArea(float minArea);
@@ -90,7 +86,6 @@ namespace ofxCv {
 		void setSimplify(bool simplify);
 		
 		void draw();
-        void draw(int contournumber);
 		
 	protected:
 		cv::Mat hsvBuffer, thresh;
@@ -101,11 +96,6 @@ namespace ofxCv {
 		TrackingColorMode trackingColorMode;
 		ofColor targetColor;
 		
-        // Added alvaro: useSeedFloodFill will apply a floodFill BEFORE doing any other thresholding, etc. 
-        bool useSeedFloodFill;
-        cv::Point seedFloodPoint; // note: Point is an alias for Point2i (integers)
-        bool autoUpdateSeed; // this will recentre the seed inside the blob (first moment)
-        
 		float minArea, maxArea;
 		bool minAreaNorm, maxAreaNorm;
 		
@@ -113,7 +103,7 @@ namespace ofxCv {
 		vector<ofPolyline> polylines;
 		
 		RectTracker tracker;
-		vector<cv::Rect> boundingBoxes;
+		vector<cv::Rect> boundingRects;
 	};	
 	
 }
