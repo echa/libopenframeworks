@@ -1,5 +1,6 @@
 # include directory when installed
-set(OF_INCLUDES @INCLUDE_INSTALL_DIR@ @OF_CORE_INCLUDES@)
+set(OF_INCLUDE_DIRS @INCLUDE_INSTALL_DIR@ @OF_CORE_INCLUDES@)
+set(OF_INCLUDES ${OF_INCLUDE_DIRS})
 
 # import libopenframeworks' exported targets
 include(@CMAKECONFIG_INSTALL_DIR@/of-targets.cmake)

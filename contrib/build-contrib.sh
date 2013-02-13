@@ -147,6 +147,9 @@ default_unpack() {
 	*.tar.gz)
 	    unpack_args="-zxf"
 	    ;;
+	*.tar.xz)
+	    unpack_args="-zxf"
+	    ;;
 	*.tar.bz2)
 	    unpack_args="-jxf"
 	    ;;

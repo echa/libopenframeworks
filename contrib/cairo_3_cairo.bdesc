@@ -1,0 +1,58 @@
+# Copyright 2012-2013 KidTsunami. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# ---
+#
+# Author: Alexander Eichhorn <echa@kidtsunami.com>
+#
+# Content: build script for Cairo - http://cairographics.org
+
+pkgname=cairo
+pkgver=1.12.14
+archive=${pkgname}-${pkgver}.tar.xz
+url=http://cairographics.org/releases/${archive}
+config_args="--prefix=${INSTDIR} --enable-static --disable-shared"
+
+case ${TARGET_SYSTEM}_${TARGET_ARCH} in
+Darwin_x86_64)
+  config_args="${config_args} --disable-xlib --disable-trace"
+  ;;
+Darwin_i386)
+  config_args="${config_args} --disable-xlib --disable-trace"
+  ;;
+Linux*)
+  ;;
+*)
+esac
+
+precond() {
+    case ${TARGET_SYSTEM} in
+    Darwin)
+        ;;
+    *)
+        error_msg="Not building ${pkgname} not ${TARGET_SYSTEM}. Please install with your package manager instead."
+        ;;
+    esac
+}
+
+
+build() {
+    cd ${pkgname}-${pkgver}
+    if [ -e ${PATCHDIR}/${pkgname}-${pkgver}-build.patch ]; then
+        patch -fN -p1 < ${PATCHDIR}/${pkgname}-${pkgver}-build.patch
+    fi
+    ./configure ${config_args}
+    make -j 4
+    make install
+}

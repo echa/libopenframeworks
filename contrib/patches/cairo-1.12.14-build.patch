@@ -1,0 +1,41 @@
+diff -Naur cairo-1.12.14/Makefile.am cairo-1.12.14-patched/Makefile.am
+--- cairo-1.12.14/Makefile.am	2012-04-19 08:17:34.000000000 -0400
++++ cairo-1.12.14-patched/Makefile.am	2013-02-13 14:42:45.000000000 -0500
+@@ -16,11 +16,11 @@
+ 
+ ACLOCAL_AMFLAGS = -I build ${ACLOCAL_FLAGS}
+ 
+-DIST_SUBDIRS = src doc util boilerplate test perf
+-SUBDIRS = src doc util
++DIST_SUBDIRS = src util
++SUBDIRS = src util
+ # libpng is required for our test programs
+ if CAIRO_HAS_PNG_FUNCTIONS
+-SUBDIRS += boilerplate test perf
++SUBDIRS +=
+ endif
+ 
+ configure: cairo-version.h
+diff -Naur cairo-1.12.14/Makefile.in cairo-1.12.14-patched/Makefile.in
+--- cairo-1.12.14/Makefile.in	2013-02-10 08:39:17.000000000 -0500
++++ cairo-1.12.14-patched/Makefile.in	2013-02-13 14:44:09.000000000 -0500
+@@ -80,7 +80,7 @@
+ TESTS =
+ check_PROGRAMS =
+ # libpng is required for our test programs
+-@CAIRO_HAS_PNG_FUNCTIONS_TRUE@am__append_1 = boilerplate test perf
++@CAIRO_HAS_PNG_FUNCTIONS_TRUE@am__append_1 =
+ subdir = .
+ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+ am__aclocal_m4_deps = $(top_srcdir)/build/aclocal.cairo.m4 \
+@@ -439,8 +439,8 @@
+ #	$(srcdir)/build/Makefile.win32.features-h \
+ #	$(NULL)
+ ACLOCAL_AMFLAGS = -I build ${ACLOCAL_FLAGS}
+-DIST_SUBDIRS = src doc util boilerplate test perf
+-SUBDIRS = src doc util $(am__append_1)
++DIST_SUBDIRS = src util
++SUBDIRS = src util $(am__append_1)
+ DISTCHECK_CONFIGURE_FLAGS = \
+ 	--enable-gtk-doc \
+ 	--enable-test-surfaces \
