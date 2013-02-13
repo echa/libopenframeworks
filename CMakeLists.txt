@@ -57,7 +57,11 @@ cmake_minimum_required(VERSION 2.8)
 
 # Project definition
 project (openframeworks)
-set (OF_VERSION 0071)
+
+set (OF_VERSION_MAJOR 0)
+set (OF_VERSION_MINOR 0)
+set (OF_VERSION_PATCH 71)
+set (OF_VERSION ${OF_VERSION_MAJOR}.${OF_VERSION_MINOR}.${OF_VERSION_PATCH})
 
 #--------------------------------------------------------------------------
 # System Type
@@ -1316,6 +1320,11 @@ configure_file (
     ${CMAKE_BINARY_DIR}/of-config.cmake @ONLY
 )
 
+configure_file (
+    ${CMAKE_SOURCE_DIR}/of-config-version.cmake.in
+    ${CMAKE_BINARY_DIR}/of-config-version.cmake @ONLY
+)
+
 
 #--------------------------------------------------------------------------
 #  Install Targets
@@ -1347,6 +1356,9 @@ install(EXPORT OF_EXPORT DESTINATION ${CMAKECONFIG_INSTALL_DIR}
         FILE of-targets.cmake)
 
 install(FILES ${CMAKE_BINARY_DIR}/of-config.cmake
+        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+
+install(FILES ${CMAKE_BINARY_DIR}/of-config-version.cmake
         DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 
 # pkgconfig

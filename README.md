@@ -105,11 +105,13 @@ Configuration and build follows the normal CMake workflow. We suggest you opt fo
     # CONTRIB_INSTALL_PATH is the directory where you've installed the
     # 3rd-party libraries
     #
-    # The second parameter is libopenframeworks' source directory, i.e. the
-    # repository root (when you've created build-of/ inside the source directory
-    # you can use a relative path, i.e. '..' as shown below)
+    # CMAKE_INSTALL_PREFIX is the directory where you want to install
+    # libOpenFrameworks into
     #
-    cmake -DCMAKE_PREFIX_PATH=<CONTRIB_INSTALL_PATH> ..
+    # The third parameter is the source directory of libopenframeworks, i.e.
+    # the repository root (you can use a relative path, i.e. '..' as shown)
+    #
+    cmake -DCMAKE_PREFIX_PATH=<CONTRIB_INSTALL_PATH> -DCMAKE_INSTALL_PREFIX= <OF_INSTALL_DIR> ..
     make
     make install
 
