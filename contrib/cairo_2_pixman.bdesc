@@ -24,6 +24,16 @@ archive=${pkgname}-${pkgver}.tar.gz
 url=http://cairographics.org/releases/${archive}
 config_args="--prefix=${INSTDIR} --enable-static --disable-shared"
 
+precond() {
+    case ${TARGET_SYSTEM} in
+    Darwin)
+        ;;
+    *)
+        error_msg="Not building ${pkgname} not ${TARGET_SYSTEM}. Please install with your package manager instead."
+        ;;
+    esac
+}
+
 build() {
     cd ${pkgname}-${pkgver}
     if [ -e ${PATCHDIR}/${pkgname}-${pkgver}-build.patch ]; then

@@ -24,6 +24,16 @@ archive=${pkgname}-${pkgver}.tar.gz
 url=http://downloads.sourceforge.net/project/libpng/libpng15/${pkgver}/${archive}
 config_args="--prefix=${INSTDIR} --enable-static --disable-shared"
 
+precond() {
+    case ${TARGET_SYSTEM} in
+    Darwin)
+        ;;
+    *)
+        error_msg="Not building ${pkgname} not ${TARGET_SYSTEM}. Please install with your package manager instead."
+        ;;
+    esac
+}
+
 build() {
     cd ${pkgname}-${pkgver}
     ./configure ${config_args}
