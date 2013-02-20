@@ -141,6 +141,10 @@ default_unpack() {
     fi
 
     case "$archive" in
+	*.zip)
+	    unzip -o ${archive}
+	    return
+	    ;;
 	*.tgz)
 	    unpack_args="-zxf"
 	    ;;
