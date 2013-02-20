@@ -308,6 +308,7 @@ set (OPENAL_MIN_VERSION 1.12)
 set (MPG123_MIN_VERSION 1.12.1)
 set (CAIRO_MIN_VERSION 1.10.0)
 set (OPENASSETIMPORT_MIN_VERSION 2.0)
+set (PCL_MIN_VERSION 1.6)
 
 #--------------------------------------------------------------------------
 # Fmodex (Note: find requires correct CMAKE_PREFIX_PATH)
@@ -806,6 +807,47 @@ else ()
     SET_CONFIG_VAR (HAVE_CREEPS)
 endif ()
 
+#--------------------------------------------------------------------------
+# PCL (required for addon)
+#--------------------------------------------------------------------------
+message (STATUS "Checking for Point Cloud Library (PCL) >= ${PCL_MIN_VERSION}...")
+find_package(PCL ${PCL_MIN_VERSION})
+if (NOT PCL_FOUND)
+    message("WW PCL ${PCL_MIN_VERSION} NOT FOUND. Please install from contrib/ or package.")
+    SET_EMPTY_DEPENDENCY(PCL)
+else ()
+    SET_CONFIG_VAR (HAVE_PCL)
+    list (APPEND OF_PKGCONF_DEPENDS
+        pcl_features
+        pcl_surface
+        pcl_filters
+        pcl_segmentation
+        pcl_io
+        pcl_sample_consensus
+        pcl_common
+        pcl_kdtree
+        pcl_octree
+    )
+    list (APPEND OF_CORE_INCLUDES ${PCL_INCLUDE_DIRS})
+
+    # remove the nasty -DDISABLE_LIBUSB-1.0 from CMAKE definitions
+    # since it creates compile warnings
+    remove_definitions("-DDISABLE_LIBUSB-1.0")
+
+    list (APPEND OF_CORE_LIBS
+        ${PCL_FEATURES_LIBRARIES}
+        ${PCL_SURFACE_LIBRARIES}
+        ${PCL_FILTERS_LIBRARIES}
+        ${PCL_SEGMENTATION_LIBRARIES}
+        ${PCL_SAMPLE_CONSENSUS_LIBRARIES}
+        ${PCL_KDTREE_LIBRARIES}
+        ${PCL_OCTREE_LIBRARIES}
+        ${PCL_IO_LIBRARIES}
+        ${PCL_COMMON_LIBRARIES}
+    )
+    list (APPEND OF_CORE_LIBDIRS ${PCL_LIBRARY_DIRS})
+
+endif ()
 
 
 #--------------------------------------------------------------------------
@@ -893,6 +935,7 @@ add_subdirectory (openframeworks/addon/ofxThreadedImageLoader/)
 add_subdirectory (openframeworks/addon/ofxUI/)
 add_subdirectory (openframeworks/addon/ofxVectorGraphics/)
 add_subdirectory (openframeworks/addon/ofxVideoGrabber/)
+add_subdirectory (openframeworks/addon/ofxPCL/)
 
 #--------------------------------------------------------------------------
 # BUILD Library

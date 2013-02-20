@@ -20,6 +20,7 @@
 #cmakedefine HAVE_TESS2
 #cmakedefine HAVE_CAIRO
 #cmakedefine HAVE_TINYXML
+#cmakedefine HAVE_PCL
 
 /* OpenFrameworks addons */
 #cmakedefine HAVE_OFX_3DMODELLOADER
@@ -34,6 +35,7 @@
 #cmakedefine HAVE_OFX_VECTORGRAPHICS
 #cmakedefine HAVE_OFX_VIDEOGRABBER
 #cmakedefine HAVE_OFX_XMLSETTINGS
+#cmakedefine HAVE_OFX_PCL
 
 /* OpenFrameworks addon dependencies */
 #cmakedefine HAVE_OPENCV
