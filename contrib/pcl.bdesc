@@ -18,7 +18,7 @@
 #
 # Content: build script for PCL
 #
-# requires Flann, Eigen, VTK
+# requires Flann, Eigen
 
 pkgname=PCL
 pkgver=1.6.0

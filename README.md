@@ -35,11 +35,13 @@ libopenframeworks allows a greater flexibility in using and extending OpenFramew
 * ofx3dModeler
 * ofxAccelerometer
 * ofxAssimpModelLoader
+* ofxCV
 * ofxDiscGrabber
 * ofxGui
 * ofxMultiTouch
 * ofxNetwork
 * ofxOpenCv
+* ofxPCL
 * ofxOsx
 * ofxSynth
 * ofxThreadedImageLoader
@@ -56,7 +58,7 @@ Please make sure the following packages are installed on your system. Consult yo
 
     alsa-utils avahi boost bzip2 cmake freeglut freeimage freetype2
     gcc git gzip libusb make openal opencl-headers patch pkg-config
-    portaudio python tar wget yasm zip
+    portaudio python tar wget yasm zip eigen
 
 
 Prerequisites on OSX
@@ -66,10 +68,9 @@ Developing on Mac OSX requires you to install the Apple Developer SDK (which inc
 
 In addition you need to install the following packages via MacPorts or Fink or compile them manually:
 
-    git-core zlib python27 pkgconfig bzip2 glib2 cmake
-    wget unzip yasm freetype freeimage glew portaudio
-    boost cairo avahi jpeg tiff jasper libpng openexr
-    mpg123 libsndfile
+    git-core zlib python27 pkgconfig bzip2 glib2 cmake wget unzip
+    yasm freetype freeimage glew portaudio boost jpeg tiff jasper
+    openexr mpg123 libsndfile eigen
 
 When you prefer homebrew as package manager on OSX, remember to add extend the PKG_CONFIG_PATH variable with
 
@@ -79,7 +80,7 @@ When you prefer homebrew as package manager on OSX, remember to add extend the P
 3rd Party Libraries
 ----------------------
 
-OpenFrameworks relies on different 3rd party libraries which are shipped as pre-built binaries with the original 'fat' OpenFrameworks distribution. To save space and enable static linkage we let you build those 3rd party libs from scratch:
+OpenFrameworks relies on several 3rd party libraries which are shipped as pre-built binaries with the original 'fat' OpenFrameworks distribution. To save space and enable static linkage we require you to build those 3rd party libs from scratch:
 
     cd contrib
     ./build-contrib.sh -i <CONTRIB_INSTALL_PATH>
@@ -94,7 +95,7 @@ Building libopenframeworks
 Configuration and build follows the normal CMake workflow. We suggest you opt for an *out-of-source* build to keep your source directories clean. All examples below assume you are in the repository's root path (refered to as source directory). Here's a step-by step guide:
 
     # set PKG_CONFIG_PATH so CMake finds your private 3rd-party libraries
-    export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:<CONTRIB_INSTALL_PATH>/lib/pkgconfig/
+    export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:<CONTRIB_INSTALL_PATH>/lib/pkgconfig/:/usr/X11/lib/pkgconfig
 
     # create a build directory and enter it
     mkdir build
@@ -111,7 +112,7 @@ Configuration and build follows the normal CMake workflow. We suggest you opt fo
     # The third parameter is the source directory of libopenframeworks, i.e.
     # the repository root (you can use a relative path, i.e. '..' as shown)
     #
-    cmake -DCMAKE_PREFIX_PATH=<CONTRIB_INSTALL_PATH> -DCMAKE_INSTALL_PREFIX= <OF_INSTALL_DIR> ..
+    cmake -DCMAKE_PREFIX_PATH=<CONTRIB_INSTALL_PATH> -DCMAKE_INSTALL_PREFIX=<OF_INSTALL_DIR> ..
     make
     make install
 
