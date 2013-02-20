@@ -41,7 +41,7 @@ libopenframeworks allows a greater flexibility in using and extending OpenFramew
 * ofxMultiTouch
 * ofxNetwork
 * ofxOpenCv
-* ofxPCL
+* ofxPCL - [Point Cloud Library](http://pointclouds.org/) addon by [satoruhiga](https://github.com/satoruhiga/ofxPCL)
 * ofxOsx
 * ofxSynth
 * ofxThreadedImageLoader
@@ -58,7 +58,7 @@ Please make sure the following packages are installed on your system. Consult yo
 
     alsa-utils avahi boost bzip2 cmake freeglut freeimage freetype2
     gcc git gzip libusb make openal opencl-headers patch pkg-config
-    portaudio python tar wget yasm zip eigen
+    portaudio python tar wget yasm zip
 
 
 Prerequisites on OSX
@@ -70,7 +70,7 @@ In addition you need to install the following packages via MacPorts or Fink or c
 
     git-core zlib python27 pkgconfig bzip2 glib2 cmake wget unzip
     yasm freetype freeimage glew portaudio boost jpeg tiff jasper
-    openexr mpg123 libsndfile eigen
+    openexr mpg123 libsndfile
 
 When you prefer homebrew as package manager on OSX, remember to add extend the PKG_CONFIG_PATH variable with
 

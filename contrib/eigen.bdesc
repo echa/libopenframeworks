@@ -16,7 +16,7 @@
 #
 # Author: Alexander Eichhorn <echa@kidtsunami.com>
 #
-# Content: build script for Eigen3
+# Content: build script for Eigen3 - http://eigen.tuxfamily.org
 #
 
 pkgname=eigen

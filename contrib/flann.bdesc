@@ -17,33 +17,17 @@
 # Author: Alexander Eichhorn <echa@kidtsunami.com>
 #
 # Content: build script for Flann
+#   http://www.cs.ubc.ca/~mariusm/index.php/FLANN/FLANN
 #
-# requires Flann, Eigen
 
 pkgname=flann
 pkgver=1.8.4
 archive=${pkgname}-${pkgver}-src.zip
 url=http://people.cs.ubc.ca/~mariusm/uploads/FLANN/${archive}
 
-#case ${TARGET_SYSTEM} in
-#Darwin)
-#    CMAKE_ARGS="-DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++"
-#    ;;
-#*)
-#    CMAKE_ARGS=""
-#    ;;
-#esac
-
 # Flann is built using cmake
 build() {
     FLANN_BUILD=build_flann
-
-    # patch source first
-#    cd PCL-${pkgver}-Source
-#    if [ $pkgver == "1.6.0" ]; then
-#        patch -fN -p1 < ${PATCHDIR}/pcl-1.6.0-fixexamplebuild.patch
-#    fi
-#    cd ..
 
     # cleanup the build directory
     rm -rf ${FLANN_BUILD}
