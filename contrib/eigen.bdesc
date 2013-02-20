@@ -1,0 +1,45 @@
+# Copyright 2013 KidTsunami. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# ---
+#
+# Author: Alexander Eichhorn <echa@kidtsunami.com>
+#
+# Content: build script for Eigen3
+#
+
+pkgname=eigen
+pkgver=3.1.2
+archive=${pkgver}.tar.bz2
+url=http://bitbucket.org/${pkgname}/${pkgname}/get/${archive}
+
+# Eigen is built using cmake
+build() {
+    EIGEN_BUILD=build_eigen
+    EIGEN_SRC=$(find . -type d -name ${pkgname}\* -prune)
+    EIGEN_SRC=${EIGEN_SRC/.\//}
+
+    # cleanup the build directory
+    rm -rf ${EIGEN_BUILD}
+
+    # create a new build directory
+    mkdir -p ${EIGEN_BUILD}
+    cd ${EIGEN_BUILD}
+
+    cmake -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS=OFF \
+      -DEIGEN_BUILD_BTL=OFF  \
+      -DCMAKE_INSTALL_PREFIX=${INSTDIR} ../${EIGEN_SRC}
+    make -j 4
+    make install
+}
