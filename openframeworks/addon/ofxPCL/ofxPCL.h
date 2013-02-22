@@ -1,7 +1,11 @@
 #pragma once
 
-#include "ofMain.h"
+#include "ofUtils.h"
+#include "ofMatrix4x4.h"
+#include "ofVec3f.h"
+#include "ofMesh.h"
 
+#undef Success
 #include "ofxPCLTypes.h"
 #include "ofxPCLUtility.h"
 #include "ofxPCLTree.h"
@@ -51,15 +55,12 @@ namespace ofxPCL
 // file io
 //
 template <typename T>
-inline T loadPointCloud(string path)
+inline void loadPointCloud(string path, T cloud)
 {
-	T cloud(new typename T::value_type);
 	path = ofToDataPath(path);
-
+	
 	if (pcl::io::loadPCDFile<typename T::value_type::PointType>(path.c_str(), *cloud) == -1)
 		ofLogError("Couldn't read file: " + path);
-
-	return cloud;
 }
 
 template <typename T>
@@ -146,7 +147,9 @@ inline void radiusOutlierRemoval(T cloud, double radius, int num_min_points)
 template <typename T>
 inline vector<T> segmentation(T cloud, const pcl::SacModel model_type = pcl::SACMODEL_PLANE, const float distance_threshold = 1, const int min_points_limit = 10, const int max_segment_count = 30)
 {
-	if (cloud->points.empty()) return;
+	vector<T> result;
+	
+	if (cloud->points.empty()) return result;
 
 	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
 	pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
@@ -163,7 +166,6 @@ inline vector<T> segmentation(T cloud, const pcl::SacModel model_type = pcl::SAC
 	const size_t original_szie = temp->points.size();
 
 	pcl::ExtractIndices<typename T::value_type::PointType> extract;
-	vector<T> result;
 
 	int segment_count = 0;
 	while (temp->size() > original_szie * 0.3)
@@ -222,36 +224,26 @@ inline void normalEstimation(const T1 &cloud, T2 &output_cloud_with_normals)
 // MLS
 //
 template <typename T1, typename T2>
-void movingLeastSquares(const T1 &cloud, T2 &output_cloud_with_normals, float search_radius = 30)
+void movingLeastSquares(const T1 &cloud, T2 &mls_points, float search_radius = 30)
 {
 	if (cloud->points.empty()) return;
-
-	boost::shared_ptr<vector<int> > indices(new vector<int>);
-	indices->resize(cloud->points.size());
-	for (size_t i = 0; i < indices->size(); ++i)
-	{
-		(*indices)[i] = i;
-	}
-
-	pcl::PointCloud<typename T1::value_type::PointType> mls_points;
-	NormalPointCloud mls_normals(new NormalPointCloud::value_type);
-	pcl::MovingLeastSquares<ColorPointType, NormalType> mls;
-
-	KdTree<typename T1::value_type::PointType> kdtree(cloud);
-
+	
+	// Create a KD-Tree
+	typename pcl::search::KdTree<typename T1::value_type::PointType>::Ptr tree (new pcl::search::KdTree<typename T1::value_type::PointType>);
+	
+	// Init object (second point type is for the normals, even if unused)
+	typename pcl::MovingLeastSquares<typename T1::value_type::PointType, typename T2::value_type::PointType> mls;
+	
+	mls.setComputeNormals (true);
+	
 	// Set parameters
-	mls.setInputCloud(cloud);
-	mls.setIndices(indices);
-	mls.setPolynomialFit(true);
-	mls.setSearchMethod(kdtree.kdtree);
-	mls.setSearchRadius(search_radius);
-
+	mls.setInputCloud (cloud);
+	mls.setPolynomialFit (true);
+	mls.setSearchMethod (tree);
+	mls.setSearchRadius (0.03);
+	
 	// Reconstruct
-	mls.setOutputNormals(mls_normals);
-	mls.reconstruct(mls_points);
-
-	output_cloud_with_normals = T2(new typename T2::value_type);
-	pcl::concatenateFields(mls_points, *mls_normals, *output_cloud_with_normals);
+	mls.process (*mls_points);
 }
 
 //
