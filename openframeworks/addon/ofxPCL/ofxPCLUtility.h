@@ -8,7 +8,7 @@ namespace ofxPCL
 template <typename T>
 T create()
 {
-	return T(new typename T::value_type);
+	return T(new typename T::element_type);
 }
 
 //
@@ -46,25 +46,25 @@ inline void convert(const ColorPointCloud& cloud, ofMesh& mesh)
 		mesh.setVertex(i, ofVec3f(p.x, p.y, p.z));
 	}
 }
-	
+
 template <>
 inline void convert(const PointNormalPointCloud& cloud, ofMesh& mesh)
 {
 	assert(cloud);
-	
+
 	float inv_byte = 1. / 255.;
 	const size_t num_point = cloud->points.size();
-	
+
 	if (mesh.getNumVertices() != num_point) mesh.getVertices().resize(num_point);
 	if (mesh.getNumNormals() != num_point) mesh.getNormals().resize(num_point);
-	
+
 	for (int i = 0; i < num_point; i++)
 	{
 		PointNormalType &p = cloud->points[i];
 		mesh.setNormal(i, ofVec3f(p.normal_x, p.normal_y, p.normal_z));
 		mesh.setVertex(i, ofVec3f(p.x, p.y, p.z));
 	}
-}	
+}
 
 template <>
 inline void convert(const ColorNormalPointCloud& cloud, ofMesh& mesh)
@@ -259,35 +259,35 @@ inline ofMesh toOF(const ColorNormalPointCloud cloud)
 
 inline PointCloud toPCL(const vector<ofVec3f> &points)
 {
-	PointCloud cloud(new PointCloud::value_type);
+	PointCloud cloud(new PointCloud::element_type);
 	convert(points, cloud);
 	return cloud;
 }
 
 inline ColorPointCloud toPCL(const vector<ofVec3f> &points, const vector<ofFloatColor> &colors)
 {
-	ColorPointCloud cloud(new ColorPointCloud::value_type);
+	ColorPointCloud cloud(new ColorPointCloud::element_type);
 	convert(points, colors, cloud);
 	return cloud;
 }
 
 inline ColorPointCloud toPCL(const vector<ofVec3f> &points, const vector<ofColor> &colors)
 {
-	ColorPointCloud cloud(new ColorPointCloud::value_type);
+	ColorPointCloud cloud(new ColorPointCloud::element_type);
 	convert(points, colors, cloud);
 	return cloud;
 }
 
 inline ColorNormalPointCloud toPCL(const vector<ofVec3f> &points, const vector<ofFloatColor> &colors, const vector<ofVec3f> &normals)
 {
-	ColorNormalPointCloud cloud(new ColorNormalPointCloud::value_type);
+	ColorNormalPointCloud cloud(new ColorNormalPointCloud::element_type);
 	convert(points, colors, normals, cloud);
 	return cloud;
 }
 
 inline ColorNormalPointCloud toPCL(const vector<ofVec3f> &points, const vector<ofColor> &colors, const vector<ofVec3f> &normals)
 {
-	ColorNormalPointCloud cloud(new ColorNormalPointCloud::value_type);
+	ColorNormalPointCloud cloud(new ColorNormalPointCloud::element_type);
 	convert(points, colors, normals, cloud);
 	return cloud;
 }
@@ -298,7 +298,7 @@ T toPCL(const ofMesh &mesh);
 template <>
 inline PointCloud toPCL(const ofMesh &mesh)
 {
-	PointCloud cloud(new PointCloud::value_type);
+	PointCloud cloud(new PointCloud::element_type);
 	convert(mesh, cloud);
 	return cloud;
 }
@@ -306,7 +306,7 @@ inline PointCloud toPCL(const ofMesh &mesh)
 template <>
 inline ColorPointCloud toPCL(const ofMesh &mesh)
 {
-	ColorPointCloud cloud(new ColorPointCloud::value_type);
+	ColorPointCloud cloud(new ColorPointCloud::element_type);
 	convert(mesh, cloud);
 	return cloud;
 }
@@ -314,7 +314,7 @@ inline ColorPointCloud toPCL(const ofMesh &mesh)
 template <>
 inline ColorNormalPointCloud toPCL(const ofMesh &mesh)
 {
-	ColorNormalPointCloud cloud(new ColorNormalPointCloud::value_type);
+	ColorNormalPointCloud cloud(new ColorNormalPointCloud::element_type);
 	convert(mesh, cloud);
 	return cloud;
 }

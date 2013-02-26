@@ -3,10 +3,10 @@
 #
 # File:     CMakeLists.txt
 # Author:   Alexander Eichhorn <echa@kidtsunami.com>
-# Contents: Template CMake file libopenframeworks project
+# Contents: OpenFrameWorks Example
 #
 #
-# Copyright 2012 KidTsunami. All Rights Reserved.
+# Copyright 2013 KidTsunami. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,57 +22,27 @@
 #
 #############################################################################
 
-# minimum cmake version required
-cmake_minimum_required(VERSION 2.8)
 
-# give the project a name
-project (example_project)
+# project name, creates new/private variables
+project(PCL_GREEDY_PROJECTION_EXAMPLE)
 
-# Search for libopenframeworks package (will search for OFConfig.cmake,
-# of-config.cmake and FindOF.cmake) - we use of-config.cmake which gets
-# installed under CMAKE_INSTALL_PREFIX/lib/cmake/of.
-#
-# You MUST tell cmake where to search for the configuration, either by
-#
-#    cmake -DCMAKE_PREFIX_PATH=<openframeworks-install-path>/lib/cmake/of
-#
-# or by setting the environment variable OF_DIR to the above directory.
-#
-find_package(OF REQUIRED)
-include(FindPackageHandleStandardArgs)
+set (target_name "ofxPclGreedyProjectionExample")
+set (msg "OFX: ${target_name} disabled")
 
-# set include directories
-include_directories (${OF_INCLUDES} ../SharedCode)
+REQUIRES (HAVE_OPENFRAMEWORKS ${msg})
+REQUIRES (HAVE_PCL ${msg})
+MESSAGE("-- Adding OFX: ${target_name}")
 
-# set cflags
-add_definitions (${OF_CFLAGS})
-
-# add link search directories
-link_directories (${OF_LIBRARY_DIRS})
-
-# define sources
-add_executable(${CMAKE_PROJECT_NAME}
+# source files for this application
+add_executable(${target_name}
     main.cpp
     testApp.cpp
 )
 
-# link target against libopenframeworks (and implicitly against all depending
-# 3rd-party libraries)
-target_link_libraries(${CMAKE_PROJECT_NAME} ${OF_LIBRARIES})
+# libraries to link the target against (a list of CMake variables)
+target_link_libraries(${target_name} openframeworks)
 
-# if applicable, set LDFLAGS
+# additional linker flags
 if (OF_LDFLAGS)
     set_target_properties(${target_name} PROPERTIES LINK_FLAGS ${OF_LDFLAGS})
 endif ()
-
-# soft-link shared data into build directory
-
-# make sure EXTRA_DATA_OUTPUT_DIRECTORY (without the last name part) exists
-#get_filename_component(_SHARE_PATH_BASE ${EXTRA_DATA_OUTPUT_DIRECTORY} PATH)
-
-# create base directory
-#file(MAKE_DIRECTORY ${_SHARE_PATH_BASE})
-
-# link shared/ from source tree to build tree
-execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
-              ${CMAKE_SOURCE_DIR}/share ${CMAKE_BINARY_DIR}/share)

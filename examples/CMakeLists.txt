@@ -22,6 +22,12 @@
 #
 #############################################################################
 
+
+add_subdirectory(ofxPCLExtractIndices)
+add_subdirectory(ofxPCLGreedyProjection)
+add_subdirectory(ofxPCLResampling)
+add_subdirectory(ofxPCLStatisticalRemoval)
+add_subdirectory(ofxPCLVoxelGrid)
 add_subdirectory(3DModelLoaderExample)
 add_subdirectory(QtKitVideoGrabberExample)
 add_subdirectory(QtKitVideoPlayerExample)

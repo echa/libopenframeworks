@@ -26,14 +26,14 @@
 project(UI_ALL)
 
 set (target_name "ofxUIAllWidgets")
-set (msg "OF:  ${target_name} disabled")
+set (msg "OFX: ${target_name} disabled")
 
 REQUIRES (HAVE_OPENFRAMEWORKS "${target_name} disabled")
 REQUIRES (HAVE_POCO "${target_name} disabled")
 REQUIRES (HAVE_OFX_UI "${target_name} disabled")
 REQUIRES (HAVE_OFX_XMLSETTINGS "${target_name} disabled")
 
-MESSAGE("-- Adding OF:  ${target_name}")
+MESSAGE("-- Adding OFX: ${target_name}")
 
 # source files for this application
 add_executable(${target_name}

@@ -308,7 +308,7 @@ set (OPENAL_MIN_VERSION 1.12)
 set (MPG123_MIN_VERSION 1.12.1)
 set (CAIRO_MIN_VERSION 1.10.0)
 set (OPENASSETIMPORT_MIN_VERSION 2.0)
-set (PCL_MIN_VERSION 1.6)
+set (PCL_MIN_VERSION 1.7)
 
 #--------------------------------------------------------------------------
 # Fmodex (Note: find requires correct CMAKE_PREFIX_PATH)
@@ -834,7 +834,7 @@ else ()
     # since it creates compile warnings
     remove_definitions("-DDISABLE_LIBUSB-1.0")
 
-    list (APPEND OF_CORE_LIBS
+    list (APPEND PCL_ALL_LIBRARIES
         ${PCL_FEATURES_LIBRARIES}
         ${PCL_SURFACE_LIBRARIES}
         ${PCL_FILTERS_LIBRARIES}
@@ -845,6 +845,32 @@ else ()
         ${PCL_IO_LIBRARIES}
         ${PCL_COMMON_LIBRARIES}
     )
+
+    # parse PCL lib list to extract optimized versions only, sort them so
+    # all pcl libraries are listed first
+    set (PCL_SKIP_NEXT_LIB 0)
+    foreach(PCL_L ${PCL_ALL_LIBRARIES})
+        if (${PCL_SKIP_NEXT_LIB} GREATER 0)
+            math(EXPR PCL_SKIP_NEXT_LIB "${PCL_SKIP_NEXT_LIB} - 1")
+        else ()
+            if ("${PCL_L}" MATCHES "optimized")
+                set (PCL_SKIP_NEXT_LIB 0)
+            elseif ("${PCL_L}" MATCHES "debug")
+                set (PCL_SKIP_NEXT_LIB 1)
+            else ()
+                if ("${PCL_L}" MATCHES "^.*pcl.*$")
+                    list(APPEND PCL_CLEANED_LIBRARIES ${PCL_L})
+                else ()
+                    list(APPEND PCL_OTHER_LIBRARIES ${PCL_L})
+                endif()
+            endif()
+        endif()
+    endforeach()
+
+    list (REMOVE_DUPLICATES PCL_CLEANED_LIBRARIES)
+    list (REMOVE_DUPLICATES PCL_OTHER_LIBRARIES)
+
+    list (APPEND OF_CORE_LIBS ${PCL_CLEANED_LIBRARIES} ${PCL_OTHER_LIBRARIES})
     list (APPEND OF_CORE_LIBDIRS ${PCL_LIBRARY_DIRS})
 
 endif ()

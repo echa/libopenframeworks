@@ -22,28 +22,17 @@
 
 pkgname=PCL
 pkgver=1.6.0
-archive=PCL-${pkgver}-Source.tar.bz2
-url=http://downloads.sourceforge.net/project/pointclouds/${pkgver}/${archive}
+#archive=PCL-${pkgver}-Source.tar.bz2
+#url=http://downloads.sourceforge.net/project/pointclouds/${pkgver}/${archive}
+PCL_BUILD=build_pcl
+PCL_SOURCE=pcl_svn
 
-case ${TARGET_SYSTEM} in
-Darwin)
-    CMAKE_ARGS="-DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++"
-    ;;
-*)
-    CMAKE_ARGS=""
-    ;;
-esac
+download() {
+    svn checkout -r 8741 http://svn.pointclouds.org/pcl/trunk ${PCL_SOURCE}
+}
 
 # PCL is built using cmake
 build() {
-    PCL_BUILD=build_pcl
-
-    # patch source first
-    cd PCL-${pkgver}-Source
-    if [ $pkgver == "1.6.0" ]; then
-        patch -fN -p1 < ${PATCHDIR}/pcl-1.6.0-fixexamplebuild.patch
-    fi
-    cd ..
 
     # cleanup the build directory
     rm -rf ${PCL_BUILD}
@@ -53,8 +42,8 @@ build() {
     cd ${PCL_BUILD}
 
     cmake -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS=OFF -DPCL_SHARED_LIBS=OFF\
-      -DBUILD_TESTS=OFF \
-      -DCMAKE_INSTALL_PREFIX=${INSTDIR} ${CMAKE_ARGS} ../PCL-${pkgver}-Source
+      -DBUILD_apps:BOOL=OFF -DBUILD_visualization:BOOL=OFF \
+      -DCMAKE_INSTALL_PREFIX=${INSTDIR} ${CMAKE_ARGS} ../${PCL_SOURCE}
     make -j 4
     make install
 }

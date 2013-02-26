@@ -1,14 +1,5 @@
 #pragma once
-
-#include "ofUtils.h"
-#include "ofMatrix4x4.h"
-#include "ofVec3f.h"
-#include "ofMesh.h"
-
-#undef Success
-#include "ofxPCLTypes.h"
-#include "ofxPCLUtility.h"
-#include "ofxPCLTree.h"
+//#undef Success
 
 // file io
 #include <pcl/io/pcd_io.h>
@@ -47,6 +38,16 @@
 
 #include <pcl/search/pcl_search.h>
 
+// inlcude OF headers last
+#include "ofUtils.h"
+#include "ofMatrix4x4.h"
+#include "ofVec3f.h"
+#include "ofMesh.h"
+#include "ofxPCLTypes.h"
+#include "ofxPCLUtility.h"
+#include "ofxPCLTree.h"
+
+
 
 namespace ofxPCL
 {
@@ -58,8 +59,8 @@ template <typename T>
 inline void loadPointCloud(string path, T cloud)
 {
 	path = ofToDataPath(path);
-	
-	if (pcl::io::loadPCDFile<typename T::value_type::PointType>(path.c_str(), *cloud) == -1)
+
+	if (pcl::io::loadPCDFile<typename T::element_type::PointType>(path.c_str(), *cloud) == -1)
 		ofLogError("Couldn't read file: " + path);
 }
 
@@ -93,7 +94,7 @@ inline void threshold(T cloud, const char *dimension, float min, float max)
 {
 	if (cloud->points.empty()) return;
 
-	pcl::PassThrough<typename T::value_type::PointType> pass;
+	pcl::PassThrough<typename T::element_type::PointType> pass;
 	pass.setInputCloud(cloud);
 	pass.setFilterFieldName(dimension);
 	pass.setFilterLimits(min, max);
@@ -108,7 +109,7 @@ inline void downsample(T cloud, ofVec3f resolution = ofVec3f(1, 1, 1))
 {
 	if (cloud->points.empty()) return;
 
-	pcl::VoxelGrid<typename T::value_type::PointType> sor;
+	pcl::VoxelGrid<typename T::element_type::PointType> sor;
 	sor.setInputCloud(cloud);
 	sor.setLeafSize(resolution.x, resolution.y, resolution.z);
 	sor.filter(*cloud);
@@ -122,7 +123,7 @@ inline void statisticalOutlierRemoval(T cloud, int nr_k = 50, double std_mul = 1
 {
 	if (cloud->points.empty()) return;
 
-	pcl::StatisticalOutlierRemoval<typename T::value_type::PointType> sor;
+	pcl::StatisticalOutlierRemoval<typename T::element_type::PointType> sor;
 	sor.setInputCloud(cloud);
 	sor.setMeanK(nr_k);
 	sor.setStddevMulThresh(std_mul);
@@ -134,7 +135,7 @@ inline void radiusOutlierRemoval(T cloud, double radius, int num_min_points)
 {
 	if (cloud->points.empty()) return;
 
-	pcl::RadiusOutlierRemoval<typename T::value_type::PointType> outrem;
+	pcl::RadiusOutlierRemoval<typename T::element_type::PointType> outrem;
 	outrem.setInputCloud(cloud);
 	outrem.setRadiusSearch(radius);
 	outrem.setMinNeighborsInRadius(num_min_points);
@@ -148,13 +149,13 @@ template <typename T>
 inline vector<T> segmentation(T cloud, const pcl::SacModel model_type = pcl::SACMODEL_PLANE, const float distance_threshold = 1, const int min_points_limit = 10, const int max_segment_count = 30)
 {
 	vector<T> result;
-	
+
 	if (cloud->points.empty()) return result;
 
 	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
 	pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
 
-	pcl::SACSegmentation<typename T::value_type::PointType> seg;
+	pcl::SACSegmentation<typename T::element_type::PointType> seg;
 	seg.setOptimizeCoefficients(false);
 
 	seg.setModelType(model_type);
@@ -162,10 +163,10 @@ inline vector<T> segmentation(T cloud, const pcl::SacModel model_type = pcl::SAC
 	seg.setDistanceThreshold(distance_threshold);
 	seg.setMaxIterations(500);
 
-	T temp(new typename T::value_type(*cloud));
+	T temp(new typename T::element_type(*cloud));
 	const size_t original_szie = temp->points.size();
 
-	pcl::ExtractIndices<typename T::value_type::PointType> extract;
+	pcl::ExtractIndices<typename T::element_type::PointType> extract;
 
 	int segment_count = 0;
 	while (temp->size() > original_szie * 0.3)
@@ -179,7 +180,7 @@ inline vector<T> segmentation(T cloud, const pcl::SacModel model_type = pcl::SAC
 		if (inliers->indices.size() < min_points_limit)
 			break;
 
-		T filterd_point_cloud(new typename T::value_type);
+		T filterd_point_cloud(new typename T::element_type);
 
 		extract.setInputCloud(temp);
 		extract.setIndices(inliers);
@@ -206,17 +207,17 @@ inline void normalEstimation(const T1 &cloud, T2 &output_cloud_with_normals)
 {
 	if (cloud->points.empty()) return;
 
-	pcl::NormalEstimation<typename T1::value_type::PointType, NormalType> n;
-	NormalPointCloud normals(new typename NormalPointCloud::value_type);
+	pcl::NormalEstimation<typename T1::element_type::PointType, NormalType> n;
+	NormalPointCloud normals(new typename NormalPointCloud::element_type);
 
-	KdTree<typename T1::value_type::PointType> kdtree(cloud);
+	KdTree<typename T1::element_type::PointType> kdtree(cloud);
 
 	n.setInputCloud(cloud);
 	n.setSearchMethod(kdtree.kdtree);
 	n.setKSearch(20);
 	n.compute(*normals);
 
-	output_cloud_with_normals = T2(new typename T2::value_type);
+	output_cloud_with_normals = T2(new typename T2::element_type);
 	pcl::concatenateFields(*cloud, *normals, *output_cloud_with_normals);
 }
 
@@ -227,21 +228,21 @@ template <typename T1, typename T2>
 void movingLeastSquares(const T1 &cloud, T2 &mls_points, float search_radius = 30)
 {
 	if (cloud->points.empty()) return;
-	
+
 	// Create a KD-Tree
-	typename pcl::search::KdTree<typename T1::value_type::PointType>::Ptr tree (new pcl::search::KdTree<typename T1::value_type::PointType>);
-	
+	typename pcl::search::KdTree<typename T1::element_type::PointType>::Ptr tree (new pcl::search::KdTree<typename T1::element_type::PointType>);
+
 	// Init object (second point type is for the normals, even if unused)
-	typename pcl::MovingLeastSquares<typename T1::value_type::PointType, typename T2::value_type::PointType> mls;
-	
+	typename pcl::MovingLeastSquares<typename T1::element_type::PointType, typename T2::element_type::PointType> mls;
+
 	mls.setComputeNormals (true);
-	
+
 	// Set parameters
 	mls.setInputCloud (cloud);
 	mls.setPolynomialFit (true);
 	mls.setSearchMethod (tree);
 	mls.setSearchRadius (0.03);
-	
+
 	// Reconstruct
 	mls.process (*mls_points);
 }
@@ -256,10 +257,10 @@ ofMesh triangulate(const T &cloud_with_normals, float search_radius = 30)
 
 	if (cloud_with_normals->points.empty()) return mesh;
 
-	typename pcl::search::KdTree<typename T::value_type::PointType>::Ptr tree(new pcl::search::KdTree<typename T::value_type::PointType>);
+	typename pcl::search::KdTree<typename T::element_type::PointType>::Ptr tree(new pcl::search::KdTree<typename T::element_type::PointType>);
 	tree->setInputCloud(cloud_with_normals);
 
-	typename pcl::GreedyProjectionTriangulation<typename T::value_type::PointType> gp3;
+	typename pcl::GreedyProjectionTriangulation<typename T::element_type::PointType> gp3;
 	pcl::PolygonMesh triangles;
 
 	// Set the maximum distance between connected points (maximum edge length)
@@ -299,10 +300,10 @@ ofMesh gridProjection(const T &cloud_with_normals, float resolution = 1, int pad
 
 	if (cloud_with_normals->points.empty()) return mesh;
 
-	typename pcl::KdTreeFLANN<typename T::value_type::PointType>::Ptr tree(new pcl::KdTreeFLANN<typename T::value_type::PointType>);
+	typename pcl::KdTreeFLANN<typename T::element_type::PointType>::Ptr tree(new pcl::KdTreeFLANN<typename T::element_type::PointType>);
 	tree->setInputCloud(cloud_with_normals);
 
-	pcl::GridProjection<typename T::value_type::PointType> gp;
+	pcl::GridProjection<typename T::element_type::PointType> gp;
 	pcl::PolygonMesh triangles;
 
 	gp.setResolution(resolution);

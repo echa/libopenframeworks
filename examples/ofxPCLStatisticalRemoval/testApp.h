@@ -1,11 +1,8 @@
 #pragma once
 
-#define nil Boost_nil
-#define Nil Boost_Nil
-#include "ofMain.h"
+// always include PCL first!
 #include "ofxPCL.h"
-#undef Nil
-#undef nil
+#include "ofMain.h"
 
 class testApp : public ofBaseApp
 {
@@ -24,7 +21,7 @@ public:
 	void windowResized(int w, int h);
 	void dragEvent(ofDragInfo dragInfo);
 	void gotMessage(ofMessage msg);
-	
+
 	ofEasyCam cam;
 	ofVboMesh mesh, meshraw;
 	bool dispRaw;
