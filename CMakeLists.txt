@@ -834,16 +834,22 @@ else ()
     # since it creates compile warnings
     remove_definitions("-DDISABLE_LIBUSB-1.0")
 
+    if(NOT APPLE)
+        add_definitions("-fopenmp")
+# TODO: fix LD_FLAGS bug in OF examples first
+#        list(APPEND OF_CORE_LDFLAGS "-fopenmp")
+    endif()
+
     list (APPEND PCL_ALL_LIBRARIES
         ${PCL_FEATURES_LIBRARIES}
         ${PCL_SURFACE_LIBRARIES}
         ${PCL_FILTERS_LIBRARIES}
         ${PCL_SEGMENTATION_LIBRARIES}
-        ${PCL_SAMPLE_CONSENSUS_LIBRARIES}
         ${PCL_KDTREE_LIBRARIES}
         ${PCL_OCTREE_LIBRARIES}
         ${PCL_IO_LIBRARIES}
         ${PCL_COMMON_LIBRARIES}
+        ${PCL_SAMPLE_CONSENSUS_LIBRARIES}
     )
 
     # parse PCL lib list to extract optimized versions only, sort them so
@@ -859,18 +865,25 @@ else ()
                 set (PCL_SKIP_NEXT_LIB 1)
             else ()
                 if ("${PCL_L}" MATCHES "^.*pcl.*$")
-                    list(APPEND PCL_CLEANED_LIBRARIES ${PCL_L})
+                    if (("${PCL_L}" MATCHES "^.*pcl_sample_consensus.*$") OR
+                        ("${PCL_L}" MATCHES "^.*pcl_search.*$") OR
+                        ("${PCL_L}" MATCHES "^.*pcl_kdtree.*$") OR
+                        ("${PCL_L}" MATCHES "^.*pcl_common.*$"))
+                        list(APPEND PCL_CLEANED_REORDERED_LIBRARIES ${PCL_L})
+                    else ()
+                        list(APPEND PCL_CLEANED_LIBRARIES ${PCL_L})
+                    endif()
                 else ()
                     list(APPEND PCL_OTHER_LIBRARIES ${PCL_L})
                 endif()
             endif()
         endif()
     endforeach()
-
-    list (REMOVE_DUPLICATES PCL_CLEANED_LIBRARIES)
     list (REMOVE_DUPLICATES PCL_OTHER_LIBRARIES)
+    list (REMOVE_DUPLICATES PCL_CLEANED_LIBRARIES)
+    list (REMOVE_DUPLICATES PCL_CLEANED_REORDERED_LIBRARIES)
 
-    list (APPEND OF_CORE_LIBS ${PCL_CLEANED_LIBRARIES} ${PCL_OTHER_LIBRARIES})
+    list (APPEND OF_CORE_LIBS ${PCL_CLEANED_LIBRARIES} ${PCL_CLEANED_REORDERED_LIBRARIES} ${PCL_OTHER_LIBRARIES} "gomp")
     list (APPEND OF_CORE_LIBDIRS ${PCL_LIBRARY_DIRS})
 
 endif ()
