@@ -243,6 +243,13 @@ inline ofMesh toOF(const ColorPointCloud cloud)
 	return mesh;
 }
 
+inline ofMesh toOF(const PointNormalPointCloud cloud)
+{
+	ofMesh mesh;
+	convert(cloud, mesh);
+	return mesh;
+}
+
 inline ofMesh toOF(const ColorNormalPointCloud cloud)
 {
 	ofMesh mesh;
