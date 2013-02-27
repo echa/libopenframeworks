@@ -78,6 +78,18 @@ if (OPENCV_PC_FOUND)
     else ()
         set (OPENCV_LIBRARIES ${OPENCV_LIBRARIES} ${OPENCV_PC_LDFLAGS_OTHER})
     endif()
+
+    # sort lib list and place all opencv libs first
+    foreach(OCV_L ${OPENCV_LIBRARIES})
+        if ("${OCV_L}" MATCHES "^.*opencv.*$")
+            list(APPEND OCV_CORE_LIBRARIES ${OCV_L})
+        else ()
+            list(APPEND OCV_OTHER_LIBRARIES ${OCV_L})
+        endif()
+    endforeach()
+
+    set (OPENCV_LIBRARIES ${OCV_CORE_LIBRARIES} ${OCV_OTHER_LIBRARIES})
+
     set (OPENCV_CFLAGS ${OPENCV_PC_CFLAGS_OTHER})
     set (OPENCV_VERSION ${OPENCV_PC_VERSION})
 
