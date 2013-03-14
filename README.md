@@ -69,7 +69,7 @@ In addition you need to install the following packages via MacPorts or Fink or c
     git-core zlib python27 pkgconfig bzip2 glib2 cmake
     wget unzip yasm freetype freeimage glew portaudio
     boost cairo avahi jpeg tiff jasper libpng openexr
-    mpg123 libsndfile
+    mpg123 libsndfile xz
 
 When you prefer homebrew as package manager on OSX, remember to add extend the PKG_CONFIG_PATH variable with
 
