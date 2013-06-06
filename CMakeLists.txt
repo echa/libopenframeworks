@@ -309,6 +309,7 @@ set (MPG123_MIN_VERSION 1.12.1)
 set (CAIRO_MIN_VERSION 1.10.0)
 set (OPENASSETIMPORT_MIN_VERSION 2.0)
 set (PCL_MIN_VERSION 1.7)
+set (OPENNI_MIN_VERSION 1.5)
 
 #--------------------------------------------------------------------------
 # Fmodex (Note: find requires correct CMAKE_PREFIX_PATH)
@@ -892,6 +893,23 @@ else ()
 
 endif ()
 
+#--------------------------------------------------------------------------
+# OpenNI (required for addon)
+#--------------------------------------------------------------------------
+find_package(OpenNI ${OPENNI_MIN_VERSION})
+if (NOT OPENNI_FOUND)
+    message("WW OpenNI >= ${OPENNI_MIN_VERSION} NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly OR install system-wide package.")
+    SET_EMPTY_DEPENDENCY(OPENNI)
+else ()
+    SET_CONFIG_VAR (HAVE_OPENNI)
+    set (OF_PKGCONF_DEPENDS ${OF_PKGCONF_DEPENDS} "openni")
+    set (OF_CORE_INCLUDES ${OF_CORE_INCLUDES} ${OPENNI_INCLUDE_DIRS})
+    set (OF_CORE_LIBS ${OF_CORE_LIBS} ${OPENNI_LIBRARIES})
+    set (OF_CORE_CFLAGS ${OF_CORE_CFLAGS} ${OPENNI_CFLAGS})
+#    set (OF_CORE_LDFLAGS ${OF_CORE_LDFLAGS} ${OPENNI_LDFLAGS})
+    APPEND_FRAMEWORKS(OF_FRAMEWORKS OPENNI_LDFLAGS)
+    set (OF_CORE_LIBDIRS ${OF_CORE_LIBDIRS} ${OPENNI_LIBRARY_DIRS})
+endif ()
 
 #--------------------------------------------------------------------------
 #   FAIL on serious error (when required library dependency is not present)
