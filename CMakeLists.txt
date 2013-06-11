@@ -350,6 +350,127 @@ else ()
 endif ()
 
 #--------------------------------------------------------------------------
+# OpenCV (required for addon)
+#--------------------------------------------------------------------------
+find_package(OpenCV ${OPENCV_MIN_VERSION})
+if (NOT OPENCV_FOUND)
+    message("WW OpenCV >= ${OPENCV_MIN_VERSION} NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly OR install system-wide package.")
+    SET_EMPTY_DEPENDENCY(OPENCV)
+else ()
+    SET_CONFIG_VAR (HAVE_OPENCV)
+    set (OF_PKGCONF_DEPENDS ${OF_PKGCONF_DEPENDS} "opencv")
+    set (OF_CORE_INCLUDES ${OF_CORE_INCLUDES} ${OPENCV_INCLUDE_DIRS})
+    set (OF_CORE_LIBS ${OF_CORE_LIBS} ${OPENCV_LIBRARIES})
+    set (OF_CORE_CFLAGS ${OF_CORE_CFLAGS} ${OPENCV_CFLAGS})
+#    set (OF_CORE_LDFLAGS ${OF_CORE_LDFLAGS} ${OPENCV_LDFLAGS})
+    APPEND_FRAMEWORKS(OF_FRAMEWORKS OPENCV_LDFLAGS)
+    set (OF_CORE_LIBDIRS ${OF_CORE_LIBDIRS} ${OPENCV_LIBRARY_DIRS})
+endif ()
+
+#--------------------------------------------------------------------------
+# PCL (required for addon)
+#--------------------------------------------------------------------------
+message (STATUS "Checking for Point Cloud Library (PCL) >= ${PCL_MIN_VERSION}...")
+find_package(PCL ${PCL_MIN_VERSION})
+if (NOT PCL_FOUND)
+    message("WW PCL ${PCL_MIN_VERSION} NOT FOUND. Please install from contrib/ or package.")
+    SET_EMPTY_DEPENDENCY(PCL)
+else ()
+    SET_CONFIG_VAR (HAVE_PCL)
+    list (APPEND OF_PKGCONF_DEPENDS
+        pcl_features
+        pcl_surface
+        pcl_filters
+        pcl_segmentation
+        pcl_io
+        pcl_sample_consensus
+        pcl_common
+        pcl_kdtree
+        pcl_octree
+    )
+    list (APPEND OF_CORE_INCLUDES ${PCL_INCLUDE_DIRS})
+
+    # remove the nasty -DDISABLE_LIBUSB-1.0 from CMAKE definitions
+    # since it creates compile warnings
+    remove_definitions("-DDISABLE_LIBUSB-1.0")
+
+    if(NOT APPLE)
+        add_definitions("-fopenmp")
+# TODO: fix LD_FLAGS bug in OF examples first
+#        list(APPEND OF_CORE_LDFLAGS "-fopenmp")
+    endif()
+
+    list (APPEND PCL_ALL_LIBRARIES
+        ${PCL_FEATURES_LIBRARIES}
+        ${PCL_SURFACE_LIBRARIES}
+        ${PCL_FILTERS_LIBRARIES}
+        ${PCL_SEGMENTATION_LIBRARIES}
+        ${PCL_KDTREE_LIBRARIES}
+        ${PCL_OCTREE_LIBRARIES}
+        ${PCL_IO_LIBRARIES}
+        ${PCL_COMMON_LIBRARIES}
+        ${PCL_SAMPLE_CONSENSUS_LIBRARIES}
+    )
+
+    # parse PCL lib list to extract optimized versions only, sort them so
+    # all pcl libraries are listed first
+    set (PCL_SKIP_NEXT_LIB 0)
+    foreach(PCL_L ${PCL_ALL_LIBRARIES})
+        if (${PCL_SKIP_NEXT_LIB} GREATER 0)
+            math(EXPR PCL_SKIP_NEXT_LIB "${PCL_SKIP_NEXT_LIB} - 1")
+        else ()
+            if ("${PCL_L}" MATCHES "optimized")
+                set (PCL_SKIP_NEXT_LIB 0)
+            elseif ("${PCL_L}" MATCHES "debug")
+                set (PCL_SKIP_NEXT_LIB 1)
+            else ()
+                if ("${PCL_L}" MATCHES "^.*pcl.*$")
+                    if (("${PCL_L}" MATCHES "^.*pcl_sample_consensus.*$") OR
+                        ("${PCL_L}" MATCHES "^.*pcl_search.*$") OR
+                        ("${PCL_L}" MATCHES "^.*pcl_kdtree.*$") OR
+                        ("${PCL_L}" MATCHES "^.*pcl_common.*$"))
+                        list(APPEND PCL_CLEANED_REORDERED_LIBRARIES ${PCL_L})
+                    else ()
+                        list(APPEND PCL_CLEANED_LIBRARIES ${PCL_L})
+                    endif()
+                else ()
+                    list(APPEND PCL_OTHER_LIBRARIES ${PCL_L})
+                endif()
+            endif()
+        endif()
+    endforeach()
+    list (REMOVE_DUPLICATES PCL_OTHER_LIBRARIES)
+    list (REMOVE_DUPLICATES PCL_CLEANED_LIBRARIES)
+    list (REMOVE_DUPLICATES PCL_CLEANED_REORDERED_LIBRARIES)
+
+    if (NOT APPLE)
+        list(APPEND PCL_OTHER_LIBRARIES "gomp")
+    endif()
+
+    list (APPEND OF_CORE_LIBS ${PCL_CLEANED_LIBRARIES} ${PCL_CLEANED_REORDERED_LIBRARIES} ${PCL_OTHER_LIBRARIES})
+    list (APPEND OF_CORE_LIBDIRS ${PCL_LIBRARY_DIRS})
+
+endif ()
+
+#--------------------------------------------------------------------------
+# OpenNI (required for addon)
+#--------------------------------------------------------------------------
+find_package(OpenNI ${OPENNI_MIN_VERSION})
+if (NOT OPENNI_FOUND)
+    message("WW OpenNI >= ${OPENNI_MIN_VERSION} NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly OR install system-wide package.")
+    SET_EMPTY_DEPENDENCY(OPENNI)
+else ()
+    SET_CONFIG_VAR (HAVE_OPENNI)
+    set (OF_PKGCONF_DEPENDS ${OF_PKGCONF_DEPENDS} "openni")
+    set (OF_CORE_INCLUDES ${OF_CORE_INCLUDES} ${OPENNI_INCLUDE_DIRS})
+    set (OF_CORE_LIBS ${OF_CORE_LIBS} ${OPENNI_LIBRARIES})
+    set (OF_CORE_CFLAGS ${OF_CORE_CFLAGS} ${OPENNI_CFLAGS})
+#    set (OF_CORE_LDFLAGS ${OF_CORE_LDFLAGS} ${OPENNI_LDFLAGS})
+    APPEND_FRAMEWORKS(OF_FRAMEWORKS OPENNI_LDFLAGS)
+    set (OF_CORE_LIBDIRS ${OF_CORE_LIBDIRS} ${OPENNI_LIBRARY_DIRS})
+endif ()
+
+#--------------------------------------------------------------------------
 # Gstreamer (also requires udev)
 #--------------------------------------------------------------------------
 find_package(GStreamer ${GSTREAMER_MIN_VERSION})
@@ -696,7 +817,6 @@ else ()
     set (OF_PKGCONF_DEPENDS ${OF_PKGCONF_DEPENDS} "tess2")
 endif ()
 
-
 #--------------------------------------------------------------------------
 # TinyXML (required for addon)
 #--------------------------------------------------------------------------
@@ -729,24 +849,6 @@ else ()
     set (OF_CORE_CFLAGS ${OF_CORE_CFLAGS} ${DC1394_CFLAGS})
     set (OF_CORE_LDFLAGS ${OF_CORE_LDFLAGS} ${DC1394_LDFLAGS})
     set (OF_CORE_LIBDIRS ${OF_CORE_LIBDIRS} ${DC1394_LIBRARY_DIRS})
-endif ()
-
-#--------------------------------------------------------------------------
-# OpenCV (required for addon)
-#--------------------------------------------------------------------------
-find_package(OpenCV ${OPENCV_MIN_VERSION})
-if (NOT OPENCV_FOUND)
-    message("WW OpenCV >= ${OPENCV_MIN_VERSION} NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly OR install system-wide package.")
-    SET_EMPTY_DEPENDENCY(OPENCV)
-else ()
-    SET_CONFIG_VAR (HAVE_OPENCV)
-    set (OF_PKGCONF_DEPENDS ${OF_PKGCONF_DEPENDS} "opencv")
-    set (OF_CORE_INCLUDES ${OF_CORE_INCLUDES} ${OPENCV_INCLUDE_DIRS})
-    set (OF_CORE_LIBS ${OF_CORE_LIBS} ${OPENCV_LIBRARIES})
-    set (OF_CORE_CFLAGS ${OF_CORE_CFLAGS} ${OPENCV_CFLAGS})
-#    set (OF_CORE_LDFLAGS ${OF_CORE_LDFLAGS} ${OPENCV_LDFLAGS})
-    APPEND_FRAMEWORKS(OF_FRAMEWORKS OPENCV_LDFLAGS)
-    set (OF_CORE_LIBDIRS ${OF_CORE_LIBDIRS} ${OPENCV_LIBRARY_DIRS})
 endif ()
 
 #--------------------------------------------------------------------------
@@ -806,109 +908,6 @@ else ()
     message(STATUS "    libdir:    ${CREEPS_LIBRARY_PATH}")
 
     SET_CONFIG_VAR (HAVE_CREEPS)
-endif ()
-
-#--------------------------------------------------------------------------
-# PCL (required for addon)
-#--------------------------------------------------------------------------
-message (STATUS "Checking for Point Cloud Library (PCL) >= ${PCL_MIN_VERSION}...")
-find_package(PCL ${PCL_MIN_VERSION})
-if (NOT PCL_FOUND)
-    message("WW PCL ${PCL_MIN_VERSION} NOT FOUND. Please install from contrib/ or package.")
-    SET_EMPTY_DEPENDENCY(PCL)
-else ()
-    SET_CONFIG_VAR (HAVE_PCL)
-    list (APPEND OF_PKGCONF_DEPENDS
-        pcl_features
-        pcl_surface
-        pcl_filters
-        pcl_segmentation
-        pcl_io
-        pcl_sample_consensus
-        pcl_common
-        pcl_kdtree
-        pcl_octree
-    )
-    list (APPEND OF_CORE_INCLUDES ${PCL_INCLUDE_DIRS})
-
-    # remove the nasty -DDISABLE_LIBUSB-1.0 from CMAKE definitions
-    # since it creates compile warnings
-    remove_definitions("-DDISABLE_LIBUSB-1.0")
-
-    if(NOT APPLE)
-        add_definitions("-fopenmp")
-# TODO: fix LD_FLAGS bug in OF examples first
-#        list(APPEND OF_CORE_LDFLAGS "-fopenmp")
-    endif()
-
-    list (APPEND PCL_ALL_LIBRARIES
-        ${PCL_FEATURES_LIBRARIES}
-        ${PCL_SURFACE_LIBRARIES}
-        ${PCL_FILTERS_LIBRARIES}
-        ${PCL_SEGMENTATION_LIBRARIES}
-        ${PCL_KDTREE_LIBRARIES}
-        ${PCL_OCTREE_LIBRARIES}
-        ${PCL_IO_LIBRARIES}
-        ${PCL_COMMON_LIBRARIES}
-        ${PCL_SAMPLE_CONSENSUS_LIBRARIES}
-    )
-
-    # parse PCL lib list to extract optimized versions only, sort them so
-    # all pcl libraries are listed first
-    set (PCL_SKIP_NEXT_LIB 0)
-    foreach(PCL_L ${PCL_ALL_LIBRARIES})
-        if (${PCL_SKIP_NEXT_LIB} GREATER 0)
-            math(EXPR PCL_SKIP_NEXT_LIB "${PCL_SKIP_NEXT_LIB} - 1")
-        else ()
-            if ("${PCL_L}" MATCHES "optimized")
-                set (PCL_SKIP_NEXT_LIB 0)
-            elseif ("${PCL_L}" MATCHES "debug")
-                set (PCL_SKIP_NEXT_LIB 1)
-            else ()
-                if ("${PCL_L}" MATCHES "^.*pcl.*$")
-                    if (("${PCL_L}" MATCHES "^.*pcl_sample_consensus.*$") OR
-                        ("${PCL_L}" MATCHES "^.*pcl_search.*$") OR
-                        ("${PCL_L}" MATCHES "^.*pcl_kdtree.*$") OR
-                        ("${PCL_L}" MATCHES "^.*pcl_common.*$"))
-                        list(APPEND PCL_CLEANED_REORDERED_LIBRARIES ${PCL_L})
-                    else ()
-                        list(APPEND PCL_CLEANED_LIBRARIES ${PCL_L})
-                    endif()
-                else ()
-                    list(APPEND PCL_OTHER_LIBRARIES ${PCL_L})
-                endif()
-            endif()
-        endif()
-    endforeach()
-    list (REMOVE_DUPLICATES PCL_OTHER_LIBRARIES)
-    list (REMOVE_DUPLICATES PCL_CLEANED_LIBRARIES)
-    list (REMOVE_DUPLICATES PCL_CLEANED_REORDERED_LIBRARIES)
-
-    if (NOT APPLE)
-        list(APPEND PCL_OTHER_LIBRARIES "gomp")
-    endif()
-
-    list (APPEND OF_CORE_LIBS ${PCL_CLEANED_LIBRARIES} ${PCL_CLEANED_REORDERED_LIBRARIES} ${PCL_OTHER_LIBRARIES})
-    list (APPEND OF_CORE_LIBDIRS ${PCL_LIBRARY_DIRS})
-
-endif ()
-
-#--------------------------------------------------------------------------
-# OpenNI (required for addon)
-#--------------------------------------------------------------------------
-find_package(OpenNI ${OPENNI_MIN_VERSION})
-if (NOT OPENNI_FOUND)
-    message("WW OpenNI >= ${OPENNI_MIN_VERSION} NOT FOUND. Please install from contrib/ AND set CMAKE_PREFIX_PATH properly OR install system-wide package.")
-    SET_EMPTY_DEPENDENCY(OPENNI)
-else ()
-    SET_CONFIG_VAR (HAVE_OPENNI)
-    set (OF_PKGCONF_DEPENDS ${OF_PKGCONF_DEPENDS} "openni")
-    set (OF_CORE_INCLUDES ${OF_CORE_INCLUDES} ${OPENNI_INCLUDE_DIRS})
-    set (OF_CORE_LIBS ${OF_CORE_LIBS} ${OPENNI_LIBRARIES})
-    set (OF_CORE_CFLAGS ${OF_CORE_CFLAGS} ${OPENNI_CFLAGS})
-#    set (OF_CORE_LDFLAGS ${OF_CORE_LDFLAGS} ${OPENNI_LDFLAGS})
-    APPEND_FRAMEWORKS(OF_FRAMEWORKS OPENNI_LDFLAGS)
-    set (OF_CORE_LIBDIRS ${OF_CORE_LIBDIRS} ${OPENNI_LIBRARY_DIRS})
 endif ()
 
 #--------------------------------------------------------------------------
