@@ -25,6 +25,7 @@
 
 add_subdirectory(ofxPCLExtractIndices)
 add_subdirectory(ofxPCLGreedyProjection)
+add_subdirectory(ofxPCLOpenNI)
 add_subdirectory(ofxPCLResampling)
 add_subdirectory(ofxPCLStatisticalRemoval)
 add_subdirectory(ofxPCLVoxelGrid)
