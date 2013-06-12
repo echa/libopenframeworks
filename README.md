@@ -41,7 +41,7 @@ libopenframeworks allows a greater flexibility in using and extending OpenFramew
 * ofxMultiTouch
 * ofxNetwork
 * ofxOpenCv
-* ofxPCL - [Point Cloud Library](http://pointclouds.org/) addon by [satoruhiga](https://github.com/satoruhiga/ofxPCL)
+* ofxPCL - [Point Cloud Library](http://pointclouds.org/) addon by [satoruhiga](https://github.com/satoruhiga/ofxPCL) with OpenNI support
 * ofxOsx
 * ofxSynth
 * ofxThreadedImageLoader
@@ -57,8 +57,9 @@ Prerequisites on Linux
 Please make sure the following packages are installed on your system. Consult your distribution's package manager for details:
 
     alsa-utils avahi boost bzip2 cmake freeglut freeimage freetype2
-    gcc git gzip libusb make openal opencl-headers patch pkg-config
-    portaudio python tar wget yasm zip
+    gcc git gzip libopenni-dev libopenni-sensor-primesense-dev libusb
+    make openal opencl-headers openni-utils patch pkg-config portaudio
+    python tar wget yasm zip
 
 
 Prerequisites on OSX
