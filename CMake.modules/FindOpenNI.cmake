@@ -37,7 +37,7 @@ if (NOT OPENNI_FIND_QUIETLY)
     message (STATUS "Checking for OpenNI...")
 endif ()
 
-pkg_check_modules(OPENNI_PC QUIET openni)
+pkg_check_modules(OPENNI_PC QUIET libopenni)
 
 if (OPENNI_PC_FOUND)
     set (OPENNI_LIBRARY_DIRS ${OPENNI_PC_LIBRARY_DIRS})
