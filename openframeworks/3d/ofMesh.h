@@ -117,6 +117,9 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, ofMesh& data);
 	
+	void load(string path);
+	void save(string path, bool useBinary = false);
+	
 	void drawVertices();
 	void drawWireframe();
 	void drawFaces();
