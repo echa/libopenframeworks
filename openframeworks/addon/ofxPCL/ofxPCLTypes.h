@@ -21,4 +21,8 @@ typedef pcl::PointCloud<PointNormalType>::Ptr PointNormalPointCloud;
 typedef pcl::PointXYZRGBNormal ColorNormalPointType;
 typedef pcl::PointCloud<ColorNormalPointType>::Ptr ColorNormalPointCloud;
 
+typedef pcl::PointXYZRGBA ColorAPointType;
+typedef pcl::PointCloud<ColorAPointType>::Ptr ColorAPointCloud;
+typedef pcl::PointCloud<ColorAPointType>::ConstPtr ColorAPointCloudConst;
+
 }

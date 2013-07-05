@@ -38,6 +38,11 @@
 
 #include <pcl/search/pcl_search.h>
 
+// grabber
+
+#include <pcl/io/grabber.h>
+#include <pcl/io/openni_grabber.h>
+
 // inlcude OF headers last
 #include "ofUtils.h"
 #include "ofMatrix4x4.h"
@@ -45,6 +50,7 @@
 #include "ofMesh.h"
 #include "ofxPCLTypes.h"
 #include "ofxPCLUtility.h"
+#include "ofxPCLGrabber.h"
 #include "ofxPCLTree.h"
 
 
@@ -215,6 +221,7 @@ inline void normalEstimation(const T1 &cloud, T2 &output_cloud_with_normals)
 	n.setInputCloud(cloud);
 	n.setSearchMethod(kdtree.kdtree);
 	n.setKSearch(20);
+//	n.setRadiusSearch (0.1);
 	n.compute(*normals);
 
 	output_cloud_with_normals = T2(new typename T2::element_type);

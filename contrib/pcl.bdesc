@@ -33,9 +33,15 @@ download() {
 
 # PCL is built using cmake
 build() {
-
     # cleanup the build directory
     rm -rf ${PCL_BUILD}
+
+    # apply patch
+    cd ${PCL_SOURCE}
+    if [ -e ${PATCHDIR}/${pkgname}-${pkgver}-linux.patch ]; then
+        patch -fN -p0 < ${PATCHDIR}/${pkgname}-${pkgver}-linux.patch
+    fi
+    cd ..
 
     # create a new build directory
     mkdir -p ${PCL_BUILD}

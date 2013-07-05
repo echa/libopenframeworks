@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ofVboMesh.h"
 #include "ofxPCLTypes.h"
 
 namespace ofxPCL
@@ -42,6 +43,23 @@ inline void convert(const ColorPointCloud& cloud, ofMesh& mesh)
 	for (int i = 0; i < num_point; i++)
 	{
 		ColorPointType &p = cloud->points[i];
+		mesh.setColor(i, ofFloatColor(p.r * inv_byte, p.g * inv_byte, p.b * inv_byte));
+		mesh.setVertex(i, ofVec3f(p.x, p.y, p.z));
+	}
+}
+
+template <>
+inline void convert(const ColorAPointCloud& cloud, ofMesh& mesh)
+{
+//	assert(cloud);
+	float inv_byte = 1. / 255.;
+	const size_t num_point = cloud->points.size();
+	if (mesh.getNumVertices() != num_point) mesh.getVertices().resize(num_point);
+	if (mesh.getNumColors() != num_point) mesh.getColors().resize(num_point);
+
+	for (int i = 0; i < num_point; i++)
+	{
+		ColorAPointType &p = cloud->points[i];
 		mesh.setColor(i, ofFloatColor(p.r * inv_byte, p.g * inv_byte, p.b * inv_byte));
 		mesh.setVertex(i, ofVec3f(p.x, p.y, p.z));
 	}
@@ -243,6 +261,13 @@ inline ofMesh toOF(const ColorPointCloud cloud)
 	return mesh;
 }
 
+inline ofMesh toOF(const ColorAPointCloud cloud)
+{
+	ofMesh mesh;
+	convert(cloud, mesh);
+	return mesh;
+}
+
 inline ofMesh toOF(const PointNormalPointCloud cloud)
 {
 	ofMesh mesh;
@@ -317,6 +342,17 @@ inline ColorNormalPointCloud toPCL(const ofMesh &mesh)
 	ColorNormalPointCloud cloud(new ColorNormalPointCloud::element_type);
 	convert(mesh, cloud);
 	return cloud;
+}
+
+template <class T>
+T toPCL(const ofVboMesh &mesh);
+
+template <>
+inline PointCloud toPCL(const ofVboMesh &mesh)
+{
+        PointCloud cloud(new PointCloud::element_type);
+        convert(mesh, cloud);
+        return cloud;
 }
 
 }
